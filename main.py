@@ -35,7 +35,7 @@ def get_complementary_color(hex_color):
   )
 
 def main(page: ft.Page):
-  page.title = "Shake n' Bake"
+  page.title = "Color Mixer"
   page.vertical_alignment= ft.MainAxisAlignment.CENTER
   page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
   initial_bg: str = "#{:06x}".format(random.randint(0, 0xFFFFFF))
@@ -56,21 +56,27 @@ def main(page: ft.Page):
     color1_value = str(color1.value).strip()
     color2_value = str(color2.value).strip()
     new_color = initial_bg
-    if color1_value.startswith("#") and color2_value.startswith("#"):
-      new_color = hexmixer(color1_value, color2_value)
+    new_color = hexmixer(color1_value, color2_value)
     page.bgcolor = new_color
     mixed_color.value = new_color
     mixed_rgb.value = "RGB: " + tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
     update_text_colors(new_color)
+    
+
+# Components for the page
 
   color1 = ft.TextField(
-    label="Enter first color code",
     on_submit=change_bg,
+    text_align=ft.TextAlign.CENTER,
+    
   )
+  text_elements.append(color1)
+
   color2 = ft.TextField(
-    label="Enter second color code",
     on_submit=change_bg,
+    text_align=ft.TextAlign.CENTER,
   )
+  text_elements.append(color2)
   
   mixed_color = ft.Text(
     value=initial_bg,
@@ -89,18 +95,29 @@ def main(page: ft.Page):
     style=ft.TextThemeStyle.DISPLAY_LARGE
   )
   text_elements.append(instruction_text)
+
+  inmstruction_subtext = ft.Text(
+    value="Press Enter to mix",
+    style=ft.TextThemeStyle.DISPLAY_MEDIUM
+  )
+
+  update_text_colors(initial_bg)
   
   class DisplayArea(ft.Column):
     def __init__(self, *args, **kwargs):
       super().__init__(*args, **kwargs)
       self.controls = [
         instruction_text,
-        ft.Row(
-          controls=[
-            color1,
-            color2
-          ],
-          alignment=ft.MainAxisAlignment.CENTER,
+        inmstruction_subtext,
+        ft.Container(
+          content=ft.Row(
+            controls=[
+              color1,
+              color2
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+          ),
+          padding=ft.padding.all(20),
         ),
         mixed_color,
         mixed_rgb
