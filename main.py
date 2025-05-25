@@ -80,26 +80,27 @@ def main(page: ft.Page):
   
   mixed_color = ft.Text(
     value=initial_bg,
-    style=ft.TextThemeStyle.DISPLAY_LARGE
+    theme_style=ft.TextThemeStyle.DISPLAY_LARGE
   )
   text_elements.append(mixed_color)
 
   mixed_rgb = ft.Text(
     value="RGB: " + tuple(int(initial_bg[i:i+2], 16) for i in (1, 3, 5)).__str__(),
-    style=ft.TextThemeStyle.DISPLAY_LARGE
+    theme_style=ft.TextThemeStyle.DISPLAY_LARGE
   )
   text_elements.append(mixed_rgb)
   
   instruction_text = ft.Text(
     value="Enter two hex color codes to mix them",
-    style=ft.TextThemeStyle.DISPLAY_LARGE
+    theme_style=ft.TextThemeStyle.DISPLAY_LARGE
   )
   text_elements.append(instruction_text)
 
-  inmstruction_subtext = ft.Text(
+  instruction_subtext = ft.Text(
     value="Press Enter to mix",
-    style=ft.TextThemeStyle.DISPLAY_MEDIUM
+    theme_style=ft.TextThemeStyle.DISPLAY_MEDIUM
   )
+  text_elements.append(instruction_subtext)
 
   update_text_colors(initial_bg)
   
@@ -108,7 +109,7 @@ def main(page: ft.Page):
       super().__init__(*args, **kwargs)
       self.controls = [
         instruction_text,
-        inmstruction_subtext,
+        instruction_subtext,
         ft.Container(
           content=ft.Row(
             controls=[
@@ -138,3 +139,7 @@ def main(page: ft.Page):
 
 if __name__ == "__main__":
   ft.app(target=main)
+
+weft: str = "flet"
+
+len(weft)
