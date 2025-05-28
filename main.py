@@ -3,11 +3,7 @@ import random
 import colorsys
 import re
 
-
-
-def hexmixer(color1, color2):
-  # Normalize color1 and color2 to hex string
-  def normalize(c):
+def normalize(c):
     c = c.strip()
     # (r, g, b) tuple
     if c.startswith('(') and c.endswith(')'):
@@ -28,6 +24,9 @@ def hexmixer(color1, color2):
     # If not valid, return a clearly invalid string to trigger error handling
     return 'INVALID'
 
+
+def hexmixer(color1, color2):
+  # Normalize color1 and color2 to hex string
   color1 = normalize(color1)
   color2 = normalize(color2)
   # If either color is invalid, raise ValueError
@@ -45,6 +44,7 @@ def hexmixer(color1, color2):
 
 def get_complementary_color(hex_color):
   """Return the color wheel opposite (complementary) of the given hex color."""
+  hex_color = normalize(hex_color)
   # Remove the # and convert to RGB
   rgb = tuple(int(hex_color[i:i+2], 16) for i in (1, 3, 5))
 
@@ -71,6 +71,11 @@ def get_complementary_color(hex_color):
 
 
 def main(page: ft.Page):
+  page.fonts = {
+    "VCR OSD Mono": "https://fonts.gstatic.com/s/vcrosd/v1/4iK8b2k5a3g0f6j7z9s5v5v5v5v5v5v5.woff2",
+  }
+
+  page.theme = ft.Theme(font_family="VCR OSD Mono") # type: ignore
   page.title = "Color Mixer"
   page.vertical_alignment= ft.MainAxisAlignment.CENTER
   page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
@@ -92,6 +97,12 @@ def main(page: ft.Page):
       element.focused_border_color = complementary
     random_fab.foreground_color = bg_color
     random_fab.bgcolor = get_complementary_color(bg_color)
+    
+    if color1.value and color2.value:
+      color1.bgcolor = normalize(color1.value)
+      color1.color = get_complementary_color(color1.value)
+      color2.bgcolor = normalize(color2.value)
+      color2.color = get_complementary_color(color2.value)
     page.update()
 
 
@@ -103,9 +114,10 @@ def main(page: ft.Page):
       new_color = initial_bg
       new_color = hexmixer(color1_value, color2_value)
       page.bgcolor = new_color
-      mixed_color.value = new_color
-      mixed_rgb.value = tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
+      mixed_color.spans[0].text = new_color
+      mixed_rgb.spans[0].text = tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
       update_text_colors(new_color)
+      
     except Exception as ex:
       pass
 
@@ -114,11 +126,15 @@ def main(page: ft.Page):
     """Handle FloatingActionButton click to change background color."""
     new_color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
     page.bgcolor = new_color
-    mixed_color.value = new_color
-    mixed_rgb.value = tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
+    mixed_color.spans[0].text = new_color
+    mixed_rgb.spans[0].text = tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
     random_fab.foreground_color = new_color
     random_fab.bgcolor = get_complementary_color(new_color)
     update_text_colors(page.bgcolor)
+
+  def text_click(e):
+    page.set_clipboard(e.control.text)
+    print(f"Copied {e.control.text} to clipboard")
 
 
 # Components for the page
@@ -127,6 +143,7 @@ def main(page: ft.Page):
     icon=ft.Icons.SHUFFLE,
     on_click=fab_click,
     tooltip="Randomize background color",
+    
   )
 
   color1 = ft.TextField(
@@ -144,16 +161,26 @@ def main(page: ft.Page):
   text_elements.append(color2)
   
   mixed_color = ft.Text(
-    value=initial_bg,
     theme_style=ft.TextThemeStyle.DISPLAY_LARGE,
     selectable=True,
+    spans=[
+      ft.TextSpan(
+        initial_bg,
+        on_click=text_click,
+      )
+    ]
   )
   text_elements.append(mixed_color)
 
   mixed_rgb = ft.Text(
-    value=tuple(int(initial_bg[i:i+2], 16) for i in (1, 3, 5)).__str__(),
     theme_style=ft.TextThemeStyle.DISPLAY_LARGE,
     selectable=True,
+    spans=[
+      ft.TextSpan(
+        tuple(int(initial_bg[i:i+2], 16) for i in (1, 3, 5)).__str__(),
+        on_click=text_click,
+      )
+    ]
   )
   text_elements.append(mixed_rgb)
 
@@ -168,6 +195,7 @@ def main(page: ft.Page):
   class DisplayArea(ft.Column):
     def __init__(self, *args, **kwargs):
       super().__init__(*args, **kwargs)
+      self.expand = True
       self.controls = [
         ft.Container(
           content=ft.Row(
@@ -177,22 +205,30 @@ def main(page: ft.Page):
             ],
             alignment=ft.MainAxisAlignment.CENTER,
           ),
-          padding=ft.padding.all(20),
+          expand=True,
         ),
-        mixed_color,
-        mixed_rgb,
-        sanzo_link
+        ft.Container(
+          content=ft.Column(
+            controls=[
+              mixed_color,
+              mixed_rgb,
+              sanzo_link
+            ],
+            alignment=ft.MainAxisAlignment.END,
+            horizontal_alignment=ft.CrossAxisAlignment.START,
+            
+            expand=True,
+          )
+        )
       ]
 
   page.add(
     DisplayArea(
       expand=True,
-      alignment=ft.MainAxisAlignment.CENTER,
-      horizontal_alignment=ft.CrossAxisAlignment.CENTER
     )
   )
   
-  page.add(random_fab)
+  page.floating_action_button = random_fab
 
   update_text_colors(initial_bg)
   page.update()
