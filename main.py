@@ -184,12 +184,6 @@ def main(page: ft.Page):
   )
   text_elements.append(mixed_rgb)
 
-  sanzo_link = ft.IconButton(
-    icon=ft.Icons.CREDIT_CARD_SHARP,
-    tooltip="Get Swatches",
-    visible=False
-  )
-
   update_text_colors(initial_bg)
   
   class DisplayArea(ft.Column):
@@ -212,7 +206,6 @@ def main(page: ft.Page):
             controls=[
               mixed_color,
               mixed_rgb,
-              sanzo_link
             ],
             alignment=ft.MainAxisAlignment.END,
             horizontal_alignment=ft.CrossAxisAlignment.START,
