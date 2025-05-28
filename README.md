@@ -26,6 +26,7 @@ It's what it says on the tin: takes two colors, and mixes them. Whether you're a
 
 - **Windows:** Double-click `colormixer.exe` in `build/windows/` and let the magic happen.
 - **Linux:** Run the `colormmixer` executable in `build/linux/` (yes, we know there’s an extra “m”—it’s a feature, not a typo).
+- **Android** Download the `.apk` in `/build/apk/` You'll need to enable "Unknown Sources" in your Android settings and tap the APK to install it. If you don't know how to sideload apps, there are plenty of guides online.
 
 ## Contributing
 

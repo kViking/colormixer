@@ -72,7 +72,7 @@ def get_complementary_color(hex_color):
 
 def main(page: ft.Page):
   page.fonts = {
-    "VCR OSD Mono": "https://fonts.gstatic.com/s/vcrosd/v1/4iK8b2k5a3g0f6j7z9s5v5v5v5v5v5v5.woff2",
+    "VCR OSD Mono": "https://fonts.gstatic.com/s/vcrosd/v1/4iK8b2k5a3g0f6j7z9s5v5v5v5v5v5.woff2",
   }
 
   page.theme = ft.Theme(font_family="VCR OSD Mono") # type: ignore
@@ -88,7 +88,6 @@ def main(page: ft.Page):
 
 
   def update_text_colors(bg_color):
-    """Update all text elements to use the complementary color of the background."""
     complementary = get_complementary_color(bg_color)
     for element in text_elements:
       element.color = complementary
@@ -97,12 +96,18 @@ def main(page: ft.Page):
       element.focused_border_color = complementary
     random_fab.foreground_color = bg_color
     random_fab.bgcolor = get_complementary_color(bg_color)
-    
-    if color1.value and color2.value:
-      color1.bgcolor = normalize(color1.value)
-      color1.color = get_complementary_color(color1.value)
-      color2.bgcolor = normalize(color2.value)
-      color2.color = get_complementary_color(color2.value)
+
+    # Only update color fields if valid
+    for field in [color1, color2]:
+      norm = normalize(field.value)
+      if norm != 'INVALID':
+        field.bgcolor = norm
+        field.color = get_complementary_color(norm)
+      else:
+        field.bgcolor = bg_color
+        field.border_color = complementary
+        field.color = complementary
+
     page.update()
 
 
@@ -130,7 +135,12 @@ def main(page: ft.Page):
     mixed_rgb.spans[0].text = tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
     random_fab.foreground_color = new_color
     random_fab.bgcolor = get_complementary_color(new_color)
+    if color1.value or color2.value:
+      color1.value = ""
+      color2.value = ""
     update_text_colors(page.bgcolor)
+    page.update()
+
 
   def text_click(e):
     page.set_clipboard(e.control.text)
@@ -143,13 +153,13 @@ def main(page: ft.Page):
     icon=ft.Icons.SHUFFLE,
     on_click=fab_click,
     tooltip="Randomize background color",
-    
   )
 
   color1 = ft.TextField(
     on_submit=change_bg,
     on_change=change_bg,
     text_align=ft.TextAlign.CENTER,
+    width=200,
   )
   text_elements.append(color1)
 
@@ -157,6 +167,7 @@ def main(page: ft.Page):
     on_submit=change_bg,
     on_change=change_bg,
     text_align=ft.TextAlign.CENTER,
+    width=200,
   )
   text_elements.append(color2)
   
@@ -184,6 +195,16 @@ def main(page: ft.Page):
   )
   text_elements.append(mixed_rgb)
 
+  input_row = ft.Row(
+    controls=[
+      color1,
+      color2,
+    ],
+    alignment=ft.MainAxisAlignment.CENTER,
+    expand=True,
+    wrap=True,
+  )
+
   update_text_colors(initial_bg)
   
   class DisplayArea(ft.Column):
@@ -192,14 +213,9 @@ def main(page: ft.Page):
       self.expand = True
       self.controls = [
         ft.Container(
-          content=ft.Row(
-            controls=[
-              color1,
-              color2
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-          ),
+          content=input_row,
           expand=True,
+          alignment=ft.alignment.top_center,
         ),
         ft.Container(
           content=ft.Column(
@@ -209,9 +225,9 @@ def main(page: ft.Page):
             ],
             alignment=ft.MainAxisAlignment.END,
             horizontal_alignment=ft.CrossAxisAlignment.START,
-            
-            expand=True,
-          )
+            expand=True, 
+          ),
+          alignment=ft.alignment.bottom_left,
         )
       ]
 
@@ -220,6 +236,7 @@ def main(page: ft.Page):
       expand=True,
     )
   )
+
   
   page.floating_action_button = random_fab
 

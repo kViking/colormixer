@@ -7,5 +7,5 @@ build/linux/*
 !build/linux/colormixer
 build/apk/*
 !build/apk
-!build/apk/colormixer.apk
-!build/apk/colormixer.apk.sha1
+!build/apk/app-release.apk
+!build/apk/app-release.apk.sha1
