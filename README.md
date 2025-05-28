@@ -5,7 +5,7 @@ It's what it says on the tin: takes two colors, and mixes them. Whether you're a
 ## Features
 
 - **Mix Colors Like a Pro:** Or like an amateur. We don’t judge.
-- **Cross-Platform:** Works on Linux and Windows, because we believe in equal opportunity for all operating systems (except maybe Mac OS).
+- **Cross-Platform:** Works on Linux, Android, and Windows, because we believe in equal opportunity for all operating systems (except maybe Mac OS).
 - **Lightning Fast:** Because you have better things to do than click on extra buttons.
 - **Minimalist UI:** So clean, Marie Kondo would approve.
 - **Screw Formatting:** Handles whatever
@@ -23,6 +23,9 @@ It's what it says on the tin: takes two colors, and mixes them. Whether you're a
 4. Repeat until you forget why you started.
 
 ## Installation
+
+### FOR ALL INSTALLS
+Go to releases, get the compiled app for your platform (Windows, Linux, Android)
 
 - **Windows:** Double-click `colormixer.exe` in `build/windows/` and let the magic happen.
 - **Linux:** Run the `colormmixer` executable in `build/linux/` (yes, we know there’s an extra “m”—it’s a feature, not a typo).
