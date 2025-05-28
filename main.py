@@ -232,8 +232,10 @@ def main(page: ft.Page):
       ]
 
   page.add(
-    DisplayArea(
-      expand=True,
+    ft.SafeArea(
+      content=DisplayArea(
+        expand=True,
+      )
     )
   )
 
