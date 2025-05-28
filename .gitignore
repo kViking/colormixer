@@ -1,11 +1,1 @@
 build/*
-build/windows/*
-!build/windows
-!build/windows/colormixer.exe
-build/linux/*
-!build/linux
-!build/linux/colormixer
-build/apk/*
-!build/apk
-!build/apk/app-release.apk
-!build/apk/app-release.apk.sha1
