@@ -75,7 +75,13 @@ def main(page: ft.Page):
     # --- UI Components ---
     def text_click(e):
         page.set_clipboard(e.control.text)
-        print(f"Copied {e.control.text} to clipboard")
+        page.open(ft.SnackBar(
+            content=ft.Text(
+                value=f"Copied {e.control.text}",
+                color=page.bgcolor
+            ),
+            bgcolor=get_complementary_color(page.bgcolor),
+        ))
 
     color1 = ColorInput(on_change=lambda e: change_bg(), on_submit=lambda e: change_bg())
     color2 = ColorInput(on_change=lambda e: change_bg(), on_submit=lambda e: change_bg())
@@ -117,6 +123,10 @@ def main(page: ft.Page):
         build_swatch_row(bg_color)
 
     def change_bg(color=None):
+        for field in [color1, color2]:
+            if field.value and not normalize(field.value) == 'INVALID':
+                field.bgcolor = normalize(field.value)
+                page.update()
         try:
             if not color:
                 c1 = (color1.value or '').strip()
@@ -136,19 +146,48 @@ def main(page: ft.Page):
             pass
 
     def get_complementary_color(hex_color):
+        def luminance(rgb):
+            def channel(c):
+                c = c / 255.0
+                return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+            r, g, b = rgb
+            return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+
+        def contrast(rgb1, rgb2):
+            l1 = luminance(rgb1)
+            l2 = luminance(rgb2)
+            lighter = max(l1, l2)
+            darker = min(l1, l2)
+            return (lighter + 0.05) / (darker + 0.05)
+
         hex_color = normalize(hex_color)
         rgb = tuple(int(hex_color[i:i+2], 16) for i in (1, 3, 5))
         if max(rgb) - min(rgb) < 10:
             inv = tuple(255 - c for c in rgb)
-            return "#{:02x}{:02x}{:02x}".format(*inv)
-        hsv = colorsys.rgb_to_hsv(rgb[0]/255, rgb[1]/255, rgb[2]/255)
-        complementary_hsv = ((hsv[0] + 0.5) % 1.0, hsv[1], hsv[2])
-        complementary_rgb = colorsys.hsv_to_rgb(*complementary_hsv)
-        return "#{:02x}{:02x}{:02x}".format(
-            int(complementary_rgb[0] * 255),
-            int(complementary_rgb[1] * 255),
-            int(complementary_rgb[2] * 255)
-        )
+            comp_rgb = inv
+        else:
+            hsv = colorsys.rgb_to_hsv(rgb[0]/255, rgb[1]/255, rgb[2]/255)
+            complementary_hsv = ((hsv[0] + 0.5) % 1.0, hsv[1], hsv[2])
+            comp_rgb = tuple(int(x * 255) for x in colorsys.hsv_to_rgb(*complementary_hsv))
+
+        # If contrast is insufficient, adjust value (lightness) of the complementary color
+        if contrast(rgb, comp_rgb) < 4.5:
+            # Try increasing and decreasing value in small steps
+            h, s, v = colorsys.rgb_to_hsv(*[c/255 for c in comp_rgb])
+            best_rgb = comp_rgb
+            best_contrast = contrast(rgb, comp_rgb)
+            for delta in [0.05 * i for i in range(1, 11)]:
+                for new_v in [min(1.0, v + delta), max(0.0, v - delta)]:
+                    adj_rgb = tuple(int(x * 255) for x in colorsys.hsv_to_rgb(h, s, new_v))
+                    cval = contrast(rgb, adj_rgb)
+                    if cval > best_contrast:
+                        best_contrast = cval
+                        best_rgb = adj_rgb
+                    if cval >= 4.5:
+                        return "#{:02x}{:02x}{:02x}".format(*adj_rgb)
+            # If no adjustment meets threshold, return the best found
+            comp_rgb = best_rgb
+        return "#{:02x}{:02x}{:02x}".format(*comp_rgb)
 
     swatch_row = SwatchRow(get_complementary_color)
     
