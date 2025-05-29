@@ -18,7 +18,8 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-CreateAppDir=no
+CreateAppDir=yes
+DefaultDirName={localappdata}\Colormixer
 ; Remove the following line to run in administrative install mode (install for all users).
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=commandline
@@ -34,6 +35,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "{group}\ColorMixer"; Filename: "{app}\colormixer.exe"
 
 [Files]
-Source: "C:\Users\Administrator\Documents\flet\colormixer\build\windows\*"; DestDir: "C:\Users\Administrator\Documents\flet\colormixer\"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "build\windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
