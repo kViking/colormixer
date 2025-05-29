@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Colormixer"
-#define MyAppVersion "0.1.2"
+#define MyAppVersion "0.1.3"
 #define MyAppPublisher "impostor Enterprises"
 #define MyAppURL "https://github.com/kviking/colormixer"
 #define MyAppExeName "MyProg-x64.exe"
@@ -23,14 +23,17 @@ CreateAppDir=no
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=commandline
 OutputDir=C:\Users\Administrator\Documents\flet\colormixer
-OutputBaseFilename=Colormixer-Installer
+OutputBaseFilename=ColorMixerInstaller
 SolidCompression=yes
 WizardStyle=modern
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
+[Icons]
+Name: "{group}\ColorMixer"; Filename: "{app}\colormixer.exe"
+
 [Files]
-Source: "C:\Users\Administrator\Documents\flet\colormixer\build\windows\*"; DestDir: "{win}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\Administrator\Documents\flet\colormixer\build\windows\*"; DestDir: "C:\Users\Administrator\Documents\flet\colormixer\"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
