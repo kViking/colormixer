@@ -64,7 +64,7 @@ def find_closest_swatch(color):
     if distance < closest_distance:
       closest_distance = distance
       closest_swatch = swatch
-  if closest_distance > 25:  # Threshold for "close enough"
+  if closest_distance > 20:  # Threshold for "close enough"
     return None
   return closest_swatch
 
@@ -80,6 +80,7 @@ def main(page: ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     initial_bg = "#{:06x}".format(random.randint(0, 0xFFFFFF))
     page.bgcolor = initial_bg
+
 
     # --- UI State ---
     text_elements = []
@@ -135,39 +136,50 @@ def main(page: ft.Page):
 
     class ColorSwatch(ft.Container):
         def __init__(self, color, name, **kwargs):
-            super().__init__(bgcolor=color, width=50, height=50, **kwargs)
-            self.bgcolor = color
-            self.on_click = lambda e: change_bg(color)
-            self.tooltip = f"Click to choose {name}"
-            self.expand = True
-            self.content = ft.Row(
-              alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-              height=75,
-              wrap=True,
-              expand=True,
-              controls=[
-                ft.Text(name, color=get_complementary_color(color), selectable=True),
-                ft.Text(
-                  spans=[
-                    ft.TextSpan(
-                      color, 
-                      on_click=text_click,
-                      semantics_label=f"Color {name} in hex format",
-                      style=ft.TextStyle(
-                        color=get_complementary_color(color)
-                      )
-                    )
-                  ]
-                )
-              ],
+            super().__init__(
+                bgcolor=color,
+                expand=True,  # Allow expansion in parent
+                alignment=ft.alignment.center,
+                **kwargs
             )
+            self.bgcolor = color
+            self.content = ft.Column(
+                alignment=ft.MainAxisAlignment.END,
+                horizontal_alignment=ft.CrossAxisAlignment.END,
+                expand=True,  # Allow vertical expansion
+                controls=[
+                    ft.Text(
+                        spans=[
+                            ft.TextSpan(
+                                color,
+                                on_click=text_click,
+                                style=ft.TextStyle(
+                                    color=get_complementary_color(color)
+                                )
+                            )
+                        ],
+                        expand=True  # Allow horizontal expansion for text
+                    ),
+                    ft.Text(name, color=get_complementary_color(color), ),
+                ],
+            )
+            def click_handler(e):
+                change_bg(color)
+                
+            self.on_click = lambda e: change_bg(color)
 
 
     # --- UI Logic ---
     def make_bottom_sheet(combination, match):
-      combo_row = ft.Row(expand=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN, height=100)
+      combo_row = ft.Row(expand=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN, spacing=0)
       sheet = ft.BottomSheet(
-        combo_row,
+        ft.Column(
+           controls=[
+              combo_row,
+              ft.Text(f"combination {combination}", style=ft.TextStyle(color=get_complementary_color(match['hex']))),
+           ],
+           expand=True,
+        ),
         bgcolor=match['hex'],
       )
       for swatch in swatches:
@@ -193,6 +205,7 @@ def main(page: ft.Page):
                 ]
              )
           )
+        page.update()
 
 
     def update_text_colors(bg_color):
@@ -211,22 +224,22 @@ def main(page: ft.Page):
                 field.color = complementary
         random_fab.foreground_color = bg_color
         random_fab.bgcolor = complementary
-        build_swatch_row(bg_color)
         page.update()
+        build_swatch_row(bg_color)
 
     def change_bg(color=None):
         try:
-            if not color:
-              c1 = (color1.value or '').strip()
-              c2 = (color2.value or '').strip()
-              new_color = hexmixer(c1, c2)
-            else:
-              new_color = normalize(color)
-            if not new_color == 'INVALID':
-              page.bgcolor = new_color
-              mixed_color.spans[0].text = new_color
-              mixed_rgb.spans[0].text = tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
-              update_text_colors(new_color)
+          if not color:
+            c1 = (color1.value or '').strip()
+            c2 = (color2.value or '').strip()
+            new_color = hexmixer(c1, c2)
+          else:
+            new_color = normalize(color)
+          if not new_color == 'INVALID':
+            page.bgcolor = new_color
+            mixed_color.spans[0].text = new_color
+            mixed_rgb.spans[0].text = tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
+            update_text_colors(new_color)
         except Exception:
             pass
 
