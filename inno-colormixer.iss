@@ -32,7 +32,7 @@ WizardStyle=modern
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Icons]
-Name: "{group}\ColorMixer"; Filename: "{app}\colormixer.exe"
+Name: "{userprograms}\ColorMixer"; Filename: "{app}\colormixer.exe"
 
 [Files]
 Source: "build\windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
