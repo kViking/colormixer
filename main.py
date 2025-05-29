@@ -206,6 +206,9 @@ def main(page: ft.Page):
              )
           )
         page.update()
+      else:
+        swatch_row.controls.clear()
+        page.update()
 
 
     def update_text_colors(bg_color):
