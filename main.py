@@ -124,9 +124,16 @@ def main(page: ft.Page):
 
     def change_bg(color=None):
         for field in [color1, color2]:
-            if field.value and not normalize(field.value) == 'INVALID':
-                field.bgcolor = normalize(field.value)
-                page.update()
+            norm = normalize(field.value)
+            if norm == 'INVALID':
+                field.bgcolor = page.bgcolor
+            else:
+                field.bgcolor = norm
+                field.color = get_complementary_color(field.bgcolor)
+            
+            page.update()
+
+
         try:
             if not color:
                 c1 = (color1.value or '').strip()
