@@ -20,16 +20,15 @@ It's what it says on the tin: takes two colors, and mixes them. Whether you're a
 1. Open the app.
 2. Mix some colors.
 3. Marvel at your creation.
-4. Repeat until you forget why you started.
+4. Realize there are little numbers at the bottom sometimes.
+5. Find inspiration.
+6. Repeat until you forget why you started.
 
 ## Installation
 
-### FOR ALL INSTALLS
-Go to releases, get the compiled app for your platform (Windows, Linux, Android)
+### Windows
 
-- **Windows:** Double-click `colormixer.exe` in `build/windows/` and let the magic happen.
-- **Linux:** Run the `colormmixer` executable in `build/linux/` (yes, we know there’s an extra “m”—it’s a feature, not a typo).
-- **Android** Download the `.apk` in `/build/apk/` You'll need to enable "Unknown Sources" in your Android settings and tap the APK to install it. If you don't know how to sideload apps, there are plenty of guides online.
+Grab the installer from the latest [release](https://github.com/kviking/colormixer/releases)! It will probably set off every antivirus alarm because it's unsigned, but on the bright side it should also be fine to install on top of any old versions.
 
 ## Contributing
 
