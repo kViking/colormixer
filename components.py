@@ -1,5 +1,6 @@
 import flet as ft
 from typing import Callable, List, Dict, Any, Optional
+import math
 
 
 class ColorInput(ft.TextField):
@@ -279,17 +280,15 @@ class HistoryRow(ft.Row):
 
 
 class HistoryItem(ft.Container):
-    """A clickable history item representing a previously mixed color."""
+    """A clickable history item representing a previously selected color."""
     def __init__(self, item: Dict[str, Any], get_complementary_color: Callable[[str], str], change_bg: Callable, **kwargs: Any):
         super().__init__(**kwargs)
         self.item = item
-        # Expect item to be a dict with 'hex' and optional 'pair'
         hex_color = item['hex'] if isinstance(item, dict) and 'hex' in item else str(item)
         self.complementary_color = get_complementary_color(hex_color)
         self.on_click = lambda e: change_bg(self.item, clear_fields=True)
         self.bgcolor = hex_color
         self.alignment = ft.alignment.bottom_left
-        # Only show hex, do not display pair
         text_value = hex_color
         self.content = ft.Text(
             value=text_value,
@@ -297,5 +296,5 @@ class HistoryItem(ft.Container):
             color=self.complementary_color,
             height=65,
             width=65,
-            rotate=ft.Rotate(angle=3.14159 / 2),  # π/2 radians = 90 degrees
+            rotate=ft.Rotate(angle=math.pi / 2),  # π/2 radians = 90 degrees
         )
