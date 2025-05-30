@@ -139,6 +139,7 @@ def main(page: ft.Page):
             page.update()
 
         try:
+            c1 = c2 = ''
             if not color:
                 c1 = (color1.value or '').strip()
                 c2 = (color2.value or '').strip()
@@ -154,8 +155,8 @@ def main(page: ft.Page):
                         color1.value, color2.value = pair
                 else:
                     new_color = normalize(color)
-                    pair = None
-            if not new_color == 'INVALID':
+                    page.update()
+                    return
                 page.bgcolor = new_color
                 mixed_color.spans[0].text = new_color
                 mixed_rgb.spans[0].text = tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
@@ -164,7 +165,6 @@ def main(page: ft.Page):
                 if len(history) == 0 or (isinstance(history[-1], dict) and history[-1].get("hex") != new_color):
                     top_10 = history[-10:] if len(history) >= 10 else history
                     if any(entry.get("hex") == new_color for entry in top_10):
-                        print(f"Color {new_color} already in history, not adding.")
                         return
                     entry = {"hex": new_color}
                     if not color and c1 and c2:

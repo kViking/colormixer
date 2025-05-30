@@ -216,8 +216,6 @@ class HistoryRow(ft.Row):
             **kwargs,
         )
 
-        print("HistoryRow initialized with history:", history)
-
         self.history = history[::-1]
         self.get_complementary_color = get_complementary_color
         self.change_bg = change_bg
@@ -229,7 +227,6 @@ class HistoryRow(ft.Row):
             self.controls.append(
                 HistoryItem(item, self.get_complementary_color, self.change_bg)
             )
-        print("HistoryRow updated with history:", history)
 
 class HistoryItem(ft.Container):
     def __init__(self, item, get_complementary_color, change_bg, **kwargs):
