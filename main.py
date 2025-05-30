@@ -5,6 +5,7 @@ import re
 import json
 from typing import Optional, List, Dict, Any
 from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, SwatchRow, HistoryRow, ComplementaryColorText
+
 # --- Load Swatches ---
 with open('swatches.json', 'r') as file:
     swatches = json.load(file)
@@ -67,17 +68,17 @@ def main(page: ft.Page) -> None:
     page.fonts = {
         "VCR OSD Mono": "VCR_OSD_MONO.ttf",
     }
-    page.theme = ft.Theme(font_family="VCR OSD Mono")
+    page.theme = ft.Theme(font_family="VCR OSD Mono") #Type: ignore
     page.title = "Color Mixer"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     initial_bg = "#{:06x}".format(random.randint(0, 0xFFFFFF))
     page.bgcolor = initial_bg
 
-
     # --- UI State ---
     text_elements: List[Any] = []
     history: List[Dict[str, Any]] = []
+    
 
     # --- UI Components ---
     def text_click(e: ft.ControlEvent) -> None:
@@ -265,6 +266,73 @@ def main(page: ft.Page) -> None:
             # If no adjustment meets threshold, return the best found
             comp_rgb = best_rgb
         return "#{:02x}{:02x}{:02x}".format(*comp_rgb)
+    
+    def clamp(val, minval=0, maxval=255):
+        return max(minval, min(maxval, val))
+
+    # --- Hotkeys ---
+    def on_hotkey(e: ft.KeyboardEvent) -> None:
+        """Handle hotkeys for changing background color."""
+        if e.shift:
+            match e.key:
+                case "Arrow Up":
+                    new_color = normalize(page.bgcolor)
+                    if new_color != 'INVALID':
+                        r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
+                        new_hex = "#{:02x}{:02x}{:02x}".format(r, g, clamp(b - 10))
+                        change_bg({'hex': new_hex})
+                case "Arrow Down":
+                    new_color = normalize(page.bgcolor)
+                    if new_color != 'INVALID':
+                        r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
+                        new_hex = "#{:02x}{:02x}{:02x}".format(r, g, clamp(b + 10))
+                        change_bg({'hex': new_hex})
+
+        match e.key:
+            case "Arrow Left":
+                new_color = normalize(page.bgcolor)
+                if new_color != 'INVALID':
+                    r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
+                    new_hex = "#{:02x}{:02x}{:02x}".format(clamp(r - 10), g, b)
+                    change_bg({'hex': new_hex})
+            case "Arrow Right":
+                new_color = normalize(page.bgcolor)
+                if new_color != 'INVALID':
+                    r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
+                    new_hex = "#{:02x}{:02x}{:02x}".format(clamp(r + 10), g, b)
+                    change_bg({'hex': new_hex})
+            case "Arrow Up":
+                new_color = normalize(page.bgcolor)
+                if new_color != 'INVALID':
+                    r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
+                    new_hex = "#{:02x}{:02x}{:02x}".format(r, clamp(g + 10), b)
+                    change_bg({'hex': new_hex})
+            case "Arrow Down":
+                new_color = normalize(page.bgcolor)
+                if new_color != 'INVALID':
+                    r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
+                    new_hex = "#{:02x}{:02x}{:02x}".format(r, clamp(g - 10), b)
+                    change_bg({'hex': new_hex})
+
+        if e.key == "Escape":
+            """Show hotkey help dialog."""
+            dialog = ft.AlertDialog(
+                title=ft.Text("Hotkeys"),
+                content=ft.Text(
+                    "Use the arrow keys to adjust the background color:\n"
+                    "- Left/Right: Adjust red channel\n"
+                    "- Up/Down: Adjust green channel\n"
+                    "- Shift + Up/Down: Adjust blue channel\n"
+                    "Press Escape to close this dialog."
+                ),
+                actions=[ft.TextButton("Close", on_click=lambda _: page.close(dialog))],
+            )
+            page.open(dialog)
+            page.update()
+        else:
+            return
+                
+    page.on_keyboard_event = on_hotkey
 
     complementary_color_text = ComplementaryColorText(
         get_complementary_color(initial_bg),
