@@ -287,6 +287,7 @@ def main(page: ft.Page) -> None:
                         r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
                         new_hex = "#{:02x}{:02x}{:02x}".format(r, g, clamp(b + 10))
                         change_bg({'hex': new_hex})
+            return
 
         match e.key:
             case "Arrow Left":
