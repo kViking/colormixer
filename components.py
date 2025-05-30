@@ -3,9 +3,8 @@ from typing import Callable, List, Dict, Any, Optional
 import math
 
 
-
 class ColorInput(ft.TextField):
-    """A text input field for color values, with custom on_change and on_submit handlers."""
+    """Create a text input field for color values."""
     def __init__(self, on_change: Callable, on_submit: Callable, **kwargs: Any):
         super().__init__(
             on_submit=on_submit,
@@ -17,7 +16,7 @@ class ColorInput(ft.TextField):
 
 
 class MixedColorText(ft.Text):
-    """A text widget displaying the mixed color hex value, clickable for copy."""
+    """Display the mixed color hex value, clickable for copy."""
     def __init__(self, initial_bg: str, on_click: Callable, **kwargs: Any):
         super().__init__(
             theme_style=ft.TextThemeStyle.DISPLAY_LARGE,
@@ -27,7 +26,7 @@ class MixedColorText(ft.Text):
 
 
 class ComplementaryColorText(ft.Text):
-    """A text widget displaying the complementary color, clickable for copy."""
+    """Display the complementary color, clickable for copy."""
     def __init__(self, complementary_color: str, on_click: Callable, **kwargs: Any):
         super().__init__(
             theme_style=ft.TextThemeStyle.DISPLAY_SMALL,
@@ -48,7 +47,7 @@ class ComplementaryColorText(ft.Text):
 
 
 class MixedRGBText(ft.Text):
-    """A text widget displaying the mixed color as an RGB tuple, clickable for copy."""
+    """Display the mixed color as an RGB tuple, clickable for copy."""
     def __init__(self, initial_bg: str, on_click: Callable, **kwargs: Any):
         rgb_str = str(tuple(int(initial_bg[i:i+2], 16) for i in (1, 3, 5)))
         super().__init__(
@@ -60,7 +59,7 @@ class MixedRGBText(ft.Text):
 
 
 class RandomFAB(ft.FloatingActionButton):
-    """A floating action button that randomizes the background color and updates history."""
+    """Randomize the background color and update history."""
     def __init__(
         self, page: ft.Page, mixed_color: MixedColorText, mixed_rgb: MixedRGBText, color1: ColorInput, color2: ColorInput,
         update_text_colors: Callable, history: List[Dict[str, Any]], history_row: 'HistoryRow', **kwargs: Any
@@ -82,36 +81,32 @@ class RandomFAB(ft.FloatingActionButton):
         self.on_click = self._handle_click
 
     def _handle_click(self, e: ft.ControlEvent) -> None:
-        """Handle click event to randomize color, update UI, and add to history."""
+        """Randomize color, update UI, and add to history."""
         import random
         new_color = f"#{random.randint(0, 0xFFFFFF):06x}"
         if self.page is not None:
             self.page.bgcolor = new_color
 
-        # Update color displays
         try:
             self.mixed_color.spans[0].text = new_color
             self.mixed_rgb.spans[0].text = str(tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)))
         except (AttributeError, IndexError):
             pass
 
-        # Clear input fields
         for field in (self.color1, self.color2):
             field.value = ""
 
-        # Add to history if not duplicate
         if not self.history or self.history[-1] != new_color:
             self.history.append({'hex': new_color})
             self.history_row.update_history(self.history)
 
-        # Update text colors and page
         self.update_text_colors(bg_color=new_color)
         if self.page is not None:
             self.page.update()
 
 
 class InputRow(ft.Row):
-    """A row containing the two color input fields."""
+    """Create a row containing the two color input fields."""
     def __init__(self, color1: ColorInput, color2: ColorInput, **kwargs: Any):
         super().__init__(
             controls=[color1, color2],
@@ -123,7 +118,7 @@ class InputRow(ft.Row):
 
 
 class SwatchRow(ft.Row):
-    """A row displaying color swatch combinations and handling swatch selection."""
+    """Display color swatch combinations and handle swatch selection."""
     def __init__(self, get_complementary_color: Callable[[str], str], **kwargs: Any):
         super().__init__(
             alignment=ft.MainAxisAlignment.START,
@@ -138,12 +133,12 @@ class SwatchRow(ft.Row):
         self.get_complementary_color = get_complementary_color
 
     def update_swatch_row(self, match: Optional[Dict[str, Any]], page: ft.Page, make_bottom_sheet: Callable, route: Optional[str] = None) -> None:
-        """Update the swatch row with new swatch combinations. Optionally accepts a route for navigation or context."""
+        """Update the swatch row with new swatch combinations."""
         self.controls.clear()
         self._page = page
         self._make_bottom_sheet = make_bottom_sheet
         self._match = match
-        self._route = route  # Store the route if needed for future use
+        self._route = route
         bgcolor = page.bgcolor if isinstance(page.bgcolor, str) and page.bgcolor else "#000000"
         if match:
             for combo in match['combinations']:
@@ -162,7 +157,7 @@ class SwatchRow(ft.Row):
         page.update()
 
     def _handle_combo_click(self, e: ft.ControlEvent) -> None:
-        """Handle click event on a swatch combination and open the bottom sheet for the selected combo."""
+        """Open the bottom sheet for the selected combo."""
         combo = e.control.text
         if self._page is not None and self._make_bottom_sheet is not None:
             self._page.open(self._make_bottom_sheet(combo, self._match))
@@ -175,7 +170,7 @@ class SwatchRow(ft.Row):
         get_complementary_color: Callable[[str], str],
         change_bg: Callable[[Dict[str, str]], None],
     ) -> ft.BottomSheet:
-        """Create and return a bottom sheet UI for a swatch combination, showing all swatches in the palette."""
+        """Create and return a bottom sheet UI for a swatch combination."""
         combo_row = ft.Row(expand=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN, spacing=0)
         sheet = ft.BottomSheet(
             ft.Column(
@@ -208,7 +203,7 @@ class SwatchRow(ft.Row):
 
 
 class ColorSwatch(ft.Container):
-    """A clickable color swatch that changes the background color and palette when clicked."""
+    """Change the background color and palette when clicked."""
     def __init__(self, color: str, name: str, get_complementary_color: Callable[[str], str], change_bg: Callable[[Dict[str, Any]], None], palette: List[str], **kwargs: Any):
         super().__init__(
             bgcolor=color,
@@ -246,13 +241,12 @@ class ColorSwatch(ft.Container):
         )
 
     def _handle_click(self, e: ft.ControlEvent) -> None:
-        """Handle click event to change the background color and palette to this swatch's color."""
-        # Always call with a dict so change_bg adds to history
+        """Change the background color and palette to this swatch's color."""
         self.change_bg({"hex": self.color, "colors": self.palette})
 
 
 class HistoryRow(ft.Row):
-    """A row displaying the color mixing history as clickable items, with each item restoring a previous color state."""
+    """Display the color mixing history as clickable items."""
     def __init__(self, history: List[Dict[str, Any]], get_complementary_color: Callable[[str], str], change_bg: Callable, **kwargs: Any):
         super().__init__(
             controls=[
@@ -274,9 +268,9 @@ class HistoryRow(ft.Row):
         self.change_bg = change_bg
 
     def update_history(self, history: List[Dict[str, Any]]) -> None:
-        """Update the history row with new history entries, displaying the most recent first."""
+        """Update the history row with new history entries."""
         self.controls.clear()
-        history = history[::-1]  # Reverse the history for display
+        history = history[::-1]
         for item in history:
             self.controls.append(
                 HistoryItem(item, self.get_complementary_color, self.change_bg)
@@ -284,7 +278,7 @@ class HistoryRow(ft.Row):
 
 
 class HistoryItem(ft.Container):
-    """A clickable history item representing a previously selected color, restoring that color when clicked."""
+    """Restore a previously selected color when clicked."""
     def __init__(self, item: Dict[str, Any], get_complementary_color: Callable[[str], str], change_bg: Callable, **kwargs: Any):
         super().__init__(**kwargs)
         self.item = item
@@ -300,5 +294,5 @@ class HistoryItem(ft.Container):
             color=self.complementary_color,
             height=65,
             width=65,
-            rotate=ft.Rotate(angle=math.pi / 2),  # π/2 radians = 90 degrees
+            rotate=ft.Rotate(angle=math.pi / 2),
         )
