@@ -3,6 +3,7 @@ import random
 import colorsys
 import re
 import json
+from typing import Optional, List, Dict, Any
 from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, SwatchRow, HistoryRow, ComplementaryColorText
 # --- Load Swatches ---
 with open('swatches.json', 'r') as file:
@@ -10,7 +11,10 @@ with open('swatches.json', 'r') as file:
 
 
 # --- Color Normalization and Mixing ---
-def normalize(c):
+def normalize(c: Optional[str]) -> str:
+    """Normalize a color string to a hex format or return 'INVALID'."""
+    if not c:
+        return 'INVALID'
     c = c.strip()
     if c.startswith('(') and c.endswith(')'):
         rgb = tuple(map(int, c[1:-1].split(',')))
@@ -24,7 +28,8 @@ def normalize(c):
         return c.lower() if c.startswith('#') else '#' + c.lower()
     return 'INVALID'
 
-def hexmixer(color1, color2):
+def hexmixer(color1: Optional[str], color2: Optional[str]) -> str:
+    """Mix two hex colors and return the resulting hex color."""
     color1 = normalize(color1)
     color2 = normalize(color2)
     if 'INVALID' in (color1, color2):
@@ -34,7 +39,8 @@ def hexmixer(color1, color2):
     r, g, b = (r1 + r2) // 2, (g1 + g2) // 2, (b1 + b2) // 2
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
-def find_closest_swatch(color):
+def find_closest_swatch(color: Optional[str]) -> Optional[dict]:
+    """Find the closest swatch to the given color. Returns None if not close enough."""
     color = normalize(color)
     if color == 'INVALID':
         return None
@@ -55,7 +61,8 @@ def find_closest_swatch(color):
     return closest_swatch
 
 # --- Main App ---
-def main(page: ft.Page):
+def main(page: ft.Page) -> None:
+    """Main entry point for the Color Mixer app."""
     # Font and theme
     page.fonts = {
         "VCR OSD Mono": "VCR_OSD_MONO.ttf",
@@ -69,11 +76,12 @@ def main(page: ft.Page):
 
 
     # --- UI State ---
-    text_elements = []
-    history = []
+    text_elements: List[Any] = []
+    history: List[Dict[str, Any]] = []
 
     # --- UI Components ---
-    def text_click(e):
+    def text_click(e: ft.ControlEvent) -> None:
+        """Copy text to clipboard and show a snackbar notification."""
         page.set_clipboard(e.control.text)
         page.open(ft.SnackBar(
             content=ft.Text(
@@ -94,7 +102,8 @@ def main(page: ft.Page):
     # swatch_row instantiation moved below, after get_complementary_color is defined
 
     # --- UI Logic ---
-    def build_swatch_row(color=None):
+    def build_swatch_row(color: Optional[str] = None) -> None:
+        """Update the swatch row based on the current or given color."""
         match = find_closest_swatch(color or page.bgcolor)
         swatch_row.update_swatch_row(
             match,
@@ -102,7 +111,8 @@ def main(page: ft.Page):
             lambda c, m: swatch_row.make_bottom_sheet(c, m, swatches, get_complementary_color, change_bg)
         )
 
-    def update_text_colors(bg_color):
+    def update_text_colors(bg_color: Optional[str]) -> None:
+        """Update text and border colors for all UI elements based on the background color."""
         complementary = get_complementary_color(bg_color)
         for element in text_elements:
             element.color = complementary
@@ -122,7 +132,8 @@ def main(page: ft.Page):
         page.update()
         build_swatch_row(bg_color)
 
-    def change_bg(color=None, clear_fields=False):
+    def change_bg(color: Optional[Any] = None, clear_fields: bool = False) -> None:
+        """Change the background color and update history and UI as needed."""
         if not color:
             for field in [color1, color2]:
                 norm = normalize(field.value)
@@ -177,15 +188,16 @@ def main(page: ft.Page):
         except Exception:
             return
 
-    def get_complementary_color(hex_color):
-        def luminance(rgb):
-            def channel(c):
+    def get_complementary_color(hex_color: Optional[str]) -> str:
+        """Return a complementary color for the given hex color, ensuring sufficient contrast."""
+        def luminance(rgb: tuple) -> float:
+            def channel(c: float) -> float:
                 c = c / 255.0
                 return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
             r, g, b = rgb
             return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
 
-        def contrast(rgb1, rgb2):
+        def contrast(rgb1: tuple, rgb2: tuple) -> float:
             l1 = luminance(rgb1)
             l2 = luminance(rgb2)
             lighter = max(l1, l2)
@@ -247,7 +259,7 @@ def main(page: ft.Page):
 
     # --- Layout ---
     class DisplayArea(ft.Column):
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args, **kwargs) -> None:
             super().__init__(*args, **kwargs)
             self.expand = True
             self.alignment = ft.MainAxisAlignment.SPACE_BETWEEN
