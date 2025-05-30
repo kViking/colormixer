@@ -111,26 +111,58 @@ def main(page: ft.Page) -> None:
             lambda c, m: swatch_row.make_bottom_sheet(c, m, swatches, get_complementary_color, change_bg)
         )
 
-    def update_text_colors(bg_color: Optional[str]) -> None:
-        """Update text and border colors for all UI elements based on the background color."""
-        complementary = get_complementary_color(bg_color)
-        for element in text_elements:
-            element.color = complementary
-        for field in [color1, color2]:
-            field.border_color = complementary
-            field.focused_border_color = complementary
-            norm = normalize(field.value)
-            if norm != 'INVALID':
-                field.bgcolor = norm
-                field.color = get_complementary_color(norm)
-            else:
-                field.bgcolor = bg_color
-                field.color = complementary
-        random_fab.foreground_color = bg_color
-        random_fab.bgcolor = complementary
-        complementary_color_text.update_color(complementary)
-        page.update()
-        build_swatch_row(bg_color)
+    def update_text_colors(bg_color: Optional[str] = None, colors: Optional[list] = None) -> None:
+        """Update text and border colors for all UI elements based on the background color or a color list.
+        If 'colors' is provided, random colors are chosen for UI elements, avoiding the current background color.
+        If 'bg_color' is provided, complementary colors are used for contrast.
+        """
+        if colors is not None:
+            # Filter out the current background color from choices
+            palette = [c for c in colors if c != page.bgcolor]
+            if not palette:
+                palette = colors  # fallback if all were filtered out
+
+            for element in text_elements:
+                element.color = random.choice(palette)
+            for field in [color1, color2]:
+                field.border_color = page.bgcolor
+                field.focused_border_color = random.choice(palette)
+                field.bgcolor = random.choice(palette)
+                norm = normalize(field.value)
+                if norm != 'INVALID':
+                    field.bgcolor = norm
+                    field.color = get_complementary_color(norm)
+            random_fab.foreground_color = page.bgcolor
+            fab_filtered = [c for c in palette if c != page.bgcolor]
+            random_fab.bgcolor = random.choice(fab_filtered) if fab_filtered else random.choice(palette)
+            complementary_color_text.update_color(get_complementary_color(random.choice(palette)))
+            page.update()
+            build_swatch_row(bg_color)
+            swatch_row_color = random.choice(palette)
+            for combo in swatch_row.controls:
+                if isinstance(combo, ft.Text) and combo.spans:
+                    combo.spans[0].style = ft.TextStyle(color=swatch_row_color)
+        elif bg_color is not None:
+            """If only bg_color is provided, use its complementary color for all UI elements."""
+            complementary = get_complementary_color(bg_color)
+            for element in text_elements:
+                element.color = complementary
+            for field in [color1, color2]:
+                field.border_color = complementary
+                field.focused_border_color = complementary
+                norm = normalize(field.value)
+                if norm != 'INVALID':
+                    field.bgcolor = norm
+                    field.color = get_complementary_color(norm)
+                else:
+                    field.bgcolor = bg_color
+                    field.color = complementary
+            random_fab.foreground_color = bg_color
+            random_fab.bgcolor = complementary
+            complementary_color_text.update_color(complementary)
+            page.update()
+            build_swatch_row(bg_color)
+        # If neither is provided, do nothing
 
     def change_bg(color: Optional[Any] = None, clear_fields: bool = False) -> None:
         """Change the background color and update history and UI as needed."""
@@ -171,7 +203,10 @@ def main(page: ft.Page) -> None:
                 page.bgcolor = new_color
                 mixed_color.spans[0].text = new_color
                 mixed_rgb.spans[0].text = tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
-                update_text_colors(new_color)
+                if isinstance(color, dict) and "colors" in color and color["colors"]:
+                    update_text_colors(colors=color["colors"])
+                else:
+                    update_text_colors(bg_color=new_color)
                 # Only add to history if not already present
                 if len(history) == 0 or (isinstance(history[-1], dict) and history[-1].get("hex") != new_color):
                     top_10 = history[-10:] if len(history) >= 10 else history
@@ -185,7 +220,9 @@ def main(page: ft.Page) -> None:
                     history.append(entry)
                     history_row.update_history(history)
                     page.update()
-        except Exception:
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
             return
 
     def get_complementary_color(hex_color: Optional[str]) -> str:
@@ -291,7 +328,7 @@ def main(page: ft.Page) -> None:
         }
     )
     history_row.update_history(history)
-    update_text_colors(initial_bg)
+    update_text_colors(bg_color=initial_bg)
     page.update()
 
 if __name__ == "__main__":
