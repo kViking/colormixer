@@ -3,7 +3,7 @@ import random
 import colorsys
 import re
 import json
-from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, SwatchRow, HistoryRow
+from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, SwatchRow, HistoryRow, ComplementaryColorText
 # --- Load Swatches ---
 with open('swatches.json', 'r') as file:
     swatches = json.load(file)
@@ -83,12 +83,24 @@ def main(page: ft.Page):
             bgcolor=get_complementary_color(page.bgcolor),
         ))
 
+    def _handle_rgb_click(e):
+        rgb_text = e.control.text
+        if rgb_text.startswith('(') and rgb_text.endswith(')'):
+            rgb_text = rgb_text[1:-1]
+        page.set_clipboard(rgb_text)
+        page.open(ft.SnackBar(
+            content=ft.Text(
+                value=f"Copied RGB: {rgb_text}",
+                color=page.bgcolor
+            ),
+            bgcolor=get_complementary_color(page.bgcolor),
+        ))
+
     color1 = ColorInput(on_change=lambda e: change_bg(), on_submit=lambda e: change_bg())
     color2 = ColorInput(on_change=lambda e: change_bg(), on_submit=lambda e: change_bg())
     text_elements.extend([color1, color2])
-
     mixed_color = MixedColorText(initial_bg, on_click=text_click)
-    mixed_rgb = MixedRGBText(initial_bg, on_click=text_click)
+    mixed_rgb = MixedRGBText(initial_bg, on_click=_handle_rgb_click)
     text_elements.extend([mixed_color, mixed_rgb])
 
     input_row = InputRow(color1, color2)
@@ -119,6 +131,7 @@ def main(page: ft.Page):
                 field.color = complementary
         random_fab.foreground_color = bg_color
         random_fab.bgcolor = complementary
+        complementary_color_text.update_color(complementary)
         page.update()
         build_swatch_row(bg_color)
 
@@ -196,6 +209,10 @@ def main(page: ft.Page):
             comp_rgb = best_rgb
         return "#{:02x}{:02x}{:02x}".format(*comp_rgb)
 
+    complementary_color_text = ComplementaryColorText(
+        get_complementary_color(initial_bg),
+        on_click=text_click
+    )
     swatch_row = SwatchRow(get_complementary_color)
     
     history_row = HistoryRow(
@@ -227,7 +244,12 @@ def main(page: ft.Page):
                 ft.Container(content=input_row, expand=True, alignment=ft.alignment.center),
                 ft.Container(
                     content=ft.Column(
-                        controls=[swatch_row, mixed_color, mixed_rgb],
+                        controls=[
+                            complementary_color_text,
+                            mixed_color, 
+                            mixed_rgb,
+                            swatch_row, 
+                        ],
                         alignment=ft.MainAxisAlignment.END,
                         horizontal_alignment=ft.CrossAxisAlignment.START,
                         # expand=True,

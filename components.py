@@ -14,10 +14,26 @@ class MixedColorText(ft.Text):
     def __init__(self, initial_bg, on_click, **kwargs):
         super().__init__(
             theme_style=ft.TextThemeStyle.DISPLAY_LARGE,
-            selectable=True,
             spans=[ft.TextSpan(initial_bg, on_click=on_click)],
             **kwargs
         )
+
+
+class ComplementaryColorText(ft.Text):
+    def __init__(self, complementary_color, on_click, **kwargs):
+        super().__init__(
+            theme_style=ft.TextThemeStyle.DISPLAY_SMALL,
+            spans=[ft.TextSpan(
+                complementary_color, 
+                on_click=on_click,
+                style=ft.TextStyle(color=complementary_color)
+            )],
+            **kwargs
+        )
+
+    def update_color(self, new_color):
+        self.spans[0].text = new_color
+        self.spans[0].style = ft.TextStyle(color=new_color)
 
 class MixedRGBText(ft.Text):
     def __init__(self, initial_bg, on_click, **kwargs):
@@ -91,6 +107,8 @@ class SwatchRow(ft.Row):
             controls=[],
             **kwargs
         )
+        self.height = 18
+        self.vertical_alignment = ft.CrossAxisAlignment.CENTER
         self._page = None
         self._make_bottom_sheet = None
         self._match = None
@@ -105,6 +123,7 @@ class SwatchRow(ft.Row):
             for combo in match['combinations']:
                 self.controls.append(
                     ft.Text(
+                        theme_style=ft.TextThemeStyle.BODY_LARGE,
                         spans=[
                             ft.TextSpan(
                                 combo,
@@ -159,6 +178,7 @@ class ColorSwatch(ft.Container):
             expand=True,
             controls=[
                 ft.Text(
+                    theme_style=ft.TextThemeStyle.BODY_LARGE,
                     spans=[
                         ft.TextSpan(
                             color,
@@ -167,7 +187,11 @@ class ColorSwatch(ft.Container):
                     ],
                     expand=True
                 ),
-                ft.Text(name, color=self.get_complementary_color(color)),
+                ft.Text(
+                    name, 
+                    color=self.get_complementary_color(color),
+                    theme_style=ft.TextThemeStyle.BODY_LARGE,
+                ),
             ],
         )
 
