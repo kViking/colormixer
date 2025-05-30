@@ -58,7 +58,7 @@ def find_closest_swatch(color):
 def main(page: ft.Page):
     # Font and theme
     page.fonts = {
-        "VCR OSD Mono": "VCR_OSD_Mono.ttf",
+        "VCR OSD Mono": "VCR_OSD_MONO.ttf",
     }
     page.theme = ft.Theme(font_family="VCR OSD Mono")
     page.title = "Color Mixer"
@@ -122,35 +122,60 @@ def main(page: ft.Page):
         page.update()
         build_swatch_row(bg_color)
 
-    def change_bg(color=None):
-        for field in [color1, color2]:
-            norm = normalize(field.value)
-            if norm == 'INVALID':
-                field.bgcolor = page.bgcolor
-            else:
-                field.bgcolor = norm
-                field.color = get_complementary_color(field.bgcolor)
-            
+    def change_bg(color=None, clear_fields=False):
+        if not color:
+            for field in [color1, color2]:
+                norm = normalize(field.value)
+                if norm == 'INVALID':
+                    field.bgcolor = page.bgcolor
+                    page.update()
+                else:
+                    field.bgcolor = norm
+                    field.color = get_complementary_color(field.bgcolor)
+                    page.update()
+        elif clear_fields:
+            color1.value = ""
+            color2.value = ""
             page.update()
-
 
         try:
             if not color:
                 c1 = (color1.value or '').strip()
                 c2 = (color2.value or '').strip()
                 new_color = hexmixer(c1, c2)
+                pair = (c1, c2)
             else:
-                new_color = normalize(color)
+                # If color is a dict (from history or swatch), extract hex and pair
+                if isinstance(color, dict):
+                    new_color = color.get("hex", "")
+                    pair = color.get("pair", None)
+                    # If pair exists, populate text fields
+                    if pair:
+                        color1.value, color2.value = pair
+                else:
+                    new_color = normalize(color)
+                    pair = None
             if not new_color == 'INVALID':
                 page.bgcolor = new_color
                 mixed_color.spans[0].text = new_color
                 mixed_rgb.spans[0].text = tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
-                if len(history) == 0 or history[-1] != new_color:
-                    history.append(new_color)
-                    history_row.update_history(history)
                 update_text_colors(new_color)
+                # Only add to history if not already present
+                if len(history) == 0 or (isinstance(history[-1], dict) and history[-1].get("hex") != new_color):
+                    top_10 = history[-10:] if len(history) >= 10 else history
+                    if any(entry.get("hex") == new_color for entry in top_10):
+                        print(f"Color {new_color} already in history, not adding.")
+                        return
+                    entry = {"hex": new_color}
+                    if not color and c1 and c2:
+                        entry["pair"] = (c1, c2)
+                    elif pair:
+                        entry["pair"] = pair
+                    history.append(entry)
+                    history_row.update_history(history)
+                    page.update()
         except Exception:
-            pass
+            return
 
     def get_complementary_color(hex_color):
         def luminance(rgb):
@@ -247,10 +272,15 @@ def main(page: ft.Page):
 
     page.add(ft.SafeArea(content=DisplayArea(expand=True), expand=True))
     page.floating_action_button = random_fab
-    history.append(initial_bg)
+    history.append(
+        {
+            "hex": initial_bg,
+            "pair": (color1.value, color2.value) if color1.value and color2.value else None
+        }
+    )
     history_row.update_history(history)
     update_text_colors(initial_bg)
     page.update()
 
 if __name__ == "__main__":
-    ft.app(target=main)
+    ft.app(target=main, assets_dir="assets")

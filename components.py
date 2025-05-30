@@ -82,7 +82,7 @@ class RandomFAB(ft.FloatingActionButton):
 
         # Add to history if not duplicate
         if len(self.history) == 0 or self.history[-1] != new_color:
-            self.history.append(new_color)
+            self.history.append({'hex': new_color})
             self.history_row.update_history(self.history)
 
         # Update text colors and page
@@ -196,7 +196,8 @@ class ColorSwatch(ft.Container):
         )
 
     def _handle_click(self, e):
-        self.change_bg(self.color)
+        # Always call with a dict so change_bg adds to history
+        self.change_bg({"hex": self.color})
 
 class HistoryRow(ft.Row):
     def __init__(self, history, get_complementary_color, change_bg, **kwargs):
@@ -234,12 +235,16 @@ class HistoryItem(ft.Container):
     def __init__(self, item, get_complementary_color, change_bg, **kwargs):
         super().__init__(**kwargs)
         self.item = item
-        self.complementary_color = get_complementary_color(item)
-        self.on_click = lambda e: change_bg(self.item)
-        self.bgcolor = item
+        # Expect item to be a dict with 'hex' and optional 'pair'
+        hex_color = item['hex'] if isinstance(item, dict) and 'hex' in item else str(item)
+        self.complementary_color = get_complementary_color(hex_color)
+        self.on_click = lambda e: change_bg(self.item, clear_fields=True)
+        self.bgcolor = hex_color
         self.alignment = ft.alignment.bottom_left
+        # Only show hex, do not display pair
+        text_value = hex_color
         self.content = ft.Text(
-            value=item,
+            value=text_value,
             text_align=ft.TextAlign.CENTER,
             color=self.complementary_color,
             height=65,
