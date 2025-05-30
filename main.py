@@ -83,24 +83,11 @@ def main(page: ft.Page):
             bgcolor=get_complementary_color(page.bgcolor),
         ))
 
-    def _handle_rgb_click(e):
-        rgb_text = e.control.text
-        if rgb_text.startswith('(') and rgb_text.endswith(')'):
-            rgb_text = rgb_text[1:-1]
-        page.set_clipboard(rgb_text)
-        page.open(ft.SnackBar(
-            content=ft.Text(
-                value=f"Copied RGB: {rgb_text}",
-                color=page.bgcolor
-            ),
-            bgcolor=get_complementary_color(page.bgcolor),
-        ))
-
     color1 = ColorInput(on_change=lambda e: change_bg(), on_submit=lambda e: change_bg())
     color2 = ColorInput(on_change=lambda e: change_bg(), on_submit=lambda e: change_bg())
     text_elements.extend([color1, color2])
     mixed_color = MixedColorText(initial_bg, on_click=text_click)
-    mixed_rgb = MixedRGBText(initial_bg, on_click=_handle_rgb_click)
+    mixed_rgb = MixedRGBText(initial_bg, on_click=text_click)
     text_elements.extend([mixed_color, mixed_rgb])
 
     input_row = InputRow(color1, color2)
