@@ -1,6 +1,7 @@
 import flet as ft
 from typing import Callable, List, Dict, Any, Optional
 import math
+from color_utils import get_complementary_color, hex_to_rgb
 
 
 class ColorInput(ft.TextField):
@@ -10,9 +11,25 @@ class ColorInput(ft.TextField):
             on_submit=on_submit,
             on_change=on_change,
             text_align=ft.TextAlign.CENTER,
+            border_radius=ft.BorderRadius(0,0,0,0),
             width=200,
             **kwargs,
         )
+
+    def update_color(self, color: str) -> None:
+        self.color = color
+        
+
+    def update_bg_color(self, color: str) -> None:
+        self.bgcolor = color
+        
+
+    def update_focused_border_color(self, color: str) -> None:
+        self.focused_border_color = color
+
+    def update_border_color(self, color: str) -> None:
+        self.border_color = color
+        
 
 
 class MixedColorText(ft.Text):
@@ -23,6 +40,10 @@ class MixedColorText(ft.Text):
             spans=[ft.TextSpan(initial_bg, on_click=on_click)],
             **kwargs,
         )
+
+    def update_color(self, color: str) -> None:
+        self.spans[0].style = ft.TextStyle(color=color)
+        
 
 
 class ComplementaryColorText(ft.Text):
@@ -41,21 +62,26 @@ class ComplementaryColorText(ft.Text):
         )
 
     def update_color(self, new_color: str) -> None:
-        """Update the displayed complementary color."""
-        self.spans[0].text = new_color
         self.spans[0].style = ft.TextStyle(color=new_color)
+        
 
 
 class MixedRGBText(ft.Text):
     """Display the mixed color as an RGB tuple, clickable for copy."""
     def __init__(self, initial_bg: str, on_click: Callable, **kwargs: Any):
-        rgb_str = str(tuple(int(initial_bg[i:i+2], 16) for i in (1, 3, 5)))
+        rgb_str = hex_to_rgb(initial_bg)
+
         super().__init__(
             theme_style=ft.TextThemeStyle.DISPLAY_LARGE,
             selectable=True,
-            spans=[ft.TextSpan(rgb_str, on_click=on_click)],
+            spans=[ft.TextSpan(text=rgb_str, on_click=on_click, style=ft.TextStyle(color=get_complementary_color(initial_bg)))],
             **kwargs,
         )
+        print(f"MixedRGBText initialized with initial_bg: {initial_bg}, rgb_str: {rgb_str}")
+        print(f"Comp: {get_complementary_color(initial_bg)}")
+
+    def update_color(self, color) -> None:
+        self.spans[0].style = ft.TextStyle(color=color)
 
 
 class RandomFAB(ft.FloatingActionButton):
@@ -80,6 +106,14 @@ class RandomFAB(ft.FloatingActionButton):
         self.history_row = history_row
         self.on_click = self._handle_click
 
+    def update_color(self, color: str) -> None:
+        self.bgcolor = color
+        if hasattr(self, 'page') and self.page is not None and hasattr(self.page, 'bgcolor') and isinstance(self.page.bgcolor, str):
+            self.foreground_color = self.page.bgcolor
+        else:
+            self.foreground_color = get_complementary_color(color)
+        
+
     def _handle_click(self, e: ft.ControlEvent) -> None:
         """Randomize color, update UI, and add to history."""
         import random
@@ -89,7 +123,7 @@ class RandomFAB(ft.FloatingActionButton):
 
         try:
             self.mixed_color.spans[0].text = new_color
-            self.mixed_rgb.spans[0].text = str(tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)))
+            self.mixed_rgb.spans[0].text = hex_to_rgb(new_color)
         except (AttributeError, IndexError):
             pass
 
@@ -115,11 +149,12 @@ class InputRow(ft.Row):
             wrap=True,
             **kwargs,
         )
+        
 
 
 class SwatchRow(ft.Row):
     """Display color swatch combinations and handle swatch selection."""
-    def __init__(self, get_complementary_color: Callable[[str], str], **kwargs: Any):
+    def __init__(self, **kwargs: Any):
         super().__init__(
             alignment=ft.MainAxisAlignment.START,
             controls=[],
@@ -130,7 +165,6 @@ class SwatchRow(ft.Row):
         self._page: Optional[ft.Page] = None
         self._make_bottom_sheet: Optional[Callable] = None
         self._match: Optional[Dict[str, Any]] = None
-        self.get_complementary_color = get_complementary_color
 
     def update_swatch_row(self, match: Optional[Dict[str, Any]], page: ft.Page, make_bottom_sheet: Callable, route: Optional[str] = None) -> None:
         """Update the swatch row with new swatch combinations."""
@@ -148,7 +182,7 @@ class SwatchRow(ft.Row):
                         spans=[
                             ft.TextSpan(
                                 combo,
-                                style=ft.TextStyle(color=self.get_complementary_color(bgcolor)),
+                                style=ft.TextStyle(color=get_complementary_color(bgcolor)),
                                 on_click=self._handle_combo_click,
                             )
                         ],
@@ -167,7 +201,6 @@ class SwatchRow(ft.Row):
         combination: str,
         match: Dict[str, Any],
         swatches: List[Dict[str, Any]],
-        get_complementary_color: Callable[[str], str],
         change_bg: Callable[[Dict[str, str]], None],
     ) -> ft.BottomSheet:
         """Create and return a bottom sheet UI for a swatch combination."""
@@ -194,7 +227,6 @@ class SwatchRow(ft.Row):
                     ColorSwatch(
                         color,
                         name,
-                        get_complementary_color=get_complementary_color,
                         change_bg=change_bg,
                         palette=palette,
                     )
@@ -204,7 +236,7 @@ class SwatchRow(ft.Row):
 
 class ColorSwatch(ft.Container):
     """Change the background color and palette when clicked."""
-    def __init__(self, color: str, name: str, get_complementary_color: Callable[[str], str], change_bg: Callable[[Dict[str, Any]], None], palette: List[str], **kwargs: Any):
+    def __init__(self, color: str, name: str, change_bg: Callable[[Dict[str, Any]], None], palette: List[str], **kwargs: Any):
         super().__init__(
             bgcolor=color,
             expand=True,
@@ -214,7 +246,6 @@ class ColorSwatch(ft.Container):
         self.palette = palette
         self.color = color
         self.name = name
-        self.get_complementary_color = get_complementary_color
         self.change_bg = change_bg
         self.on_click = self._handle_click
         self.content = ft.Column(
@@ -227,14 +258,14 @@ class ColorSwatch(ft.Container):
                     spans=[
                         ft.TextSpan(
                             color,
-                            style=ft.TextStyle(color=self.get_complementary_color(color)),
+                            style=ft.TextStyle(color=get_complementary_color(color)),
                         )
                     ],
                     expand=True,
                 ),
                 ft.Text(
                     name,
-                    color=self.get_complementary_color(color),
+                    color=get_complementary_color(color),
                     theme_style=ft.TextThemeStyle.BODY_LARGE,
                 ),
             ],
@@ -247,12 +278,11 @@ class ColorSwatch(ft.Container):
 
 class HistoryRow(ft.Row):
     """Display the color mixing history as clickable items."""
-    def __init__(self, history: List[Dict[str, Any]], get_complementary_color: Callable[[str], str], change_bg: Callable, **kwargs: Any):
+    def __init__(self, history: List[Dict[str, Any]], change_bg: Callable, **kwargs: Any):
         super().__init__(
             controls=[
                 HistoryItem(
                     item,
-                    get_complementary_color=get_complementary_color,
                     change_bg=change_bg,
                 )
                 for item in history
@@ -264,7 +294,6 @@ class HistoryRow(ft.Row):
             **kwargs,
         )
         self.history = history[::-1]
-        self.get_complementary_color = get_complementary_color
         self.change_bg = change_bg
 
     def update_history(self, history: List[Dict[str, Any]]) -> None:
@@ -273,13 +302,13 @@ class HistoryRow(ft.Row):
         history = history[::-1]
         for item in history:
             self.controls.append(
-                HistoryItem(item, self.get_complementary_color, self.change_bg)
+                HistoryItem(item, self.change_bg)
             )
 
 
 class HistoryItem(ft.Container):
     """Restore a previously selected color when clicked."""
-    def __init__(self, item: Dict[str, Any], get_complementary_color: Callable[[str], str], change_bg: Callable, **kwargs: Any):
+    def __init__(self, item: Dict[str, Any], change_bg: Callable, **kwargs: Any):
         super().__init__(**kwargs)
         self.item = item
         hex_color = item['hex'] if isinstance(item, dict) and 'hex' in item else str(item)
