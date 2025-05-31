@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # Increment MyAppVersion in inno-colormixer.iss (assumes semantic versioning: vMAJOR.MINOR.PATCH)
-current_version=$(grep '#define MyAppVersion "' ./inno-colormixer.iss | sed -E 's/.*"v([0-9]+\.[0-9]+\.[0-9]+)".*/\1/')
+current_version=$(grep '#define MyAppVersion "' ./inno-colormixer.iss | sed -E 's/.*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/')
 if [[ $current_version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
     major="${BASH_REMATCH[1]}"
     minor="${BASH_REMATCH[2]}"
     patch="${BASH_REMATCH[3]}"
     new_version="v$major.$minor.$((patch + 1))"
     sed -i "s/#define MyAppVersion \"v$major.$minor.$patch\"/#define MyAppVersion \"$new_version\"/" ./inno-colormixer.iss
-    echo "Version bumped: v$major.$minor.$patch -> $new_version"
+    echo "Version bumped: $major.$minor.$patch -> $new_version"
 else
     echo "Could not parse current version."
     exit 1
