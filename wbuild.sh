@@ -1,6 +1,19 @@
 #!/bin/bash
 
-sed -i 's/#define MyAppVersion "0.1.3"/#define MyAppVersion "0.1.4"/' ./inno-colormixer.iss;
+# Increment MyAppVersion in inno-colormixer.iss (assumes semantic versioning: vMAJOR.MINOR.PATCH)
+current_version=$(grep '#define MyAppVersion "' ./inno-colormixer.iss | sed -E 's/.*"v([0-9]+\.[0-9]+\.[0-9]+)".*/\1/')
+if [[ $current_version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+    major="${BASH_REMATCH[1]}"
+    minor="${BASH_REMATCH[2]}"
+    patch="${BASH_REMATCH[3]}"
+    new_version="v$major.$minor.$((patch + 1))"
+    sed -i "s/#define MyAppVersion \"v$major.$minor.$patch\"/#define MyAppVersion \"$new_version\"/" ./inno-colormixer.iss
+    echo "Version bumped: v$major.$minor.$patch -> $new_version"
+else
+    echo "Could not parse current version."
+    exit 1
+fi
+
 flet build windows .;
 if [ $? -ne 0 ]; then
     echo "Build failed. Please check the output for errors."
@@ -9,8 +22,8 @@ fi
 echo "Build completed successfully."
 echo "Compiling Inno Setup installer..."
 iscc="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
-if [ -f "iscc" ]; then
-    "iscc" ./inno-colormixer.iss
+if [ -f "$iscc" ]; then
+    "$iscc" ./inno-colormixer.iss
     if [ $? -ne 0 ]; then
         echo "Inno Setup compilation failed. Please check the output for errors."
         exit 1
