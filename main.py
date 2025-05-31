@@ -316,7 +316,7 @@ def main(page: ft.Page) -> None:
                     new_hex = "#{:02x}{:02x}{:02x}".format(r, clamp(g - 10), b)
                     change_bg({'hex': new_hex})
 
-        if e.key == "Escape":
+        if e.key == "Tab" or e.key == "%":
             """Show hotkey help dialog."""
             dialog = ft.AlertDialog(
                 title=ft.Text("Hotkeys"),
