@@ -135,7 +135,7 @@ def main(page: ft.Page) -> None:
             random_fab.foreground_color = page.bgcolor
             fab_filtered = [c for c in palette if c != page.bgcolor]
             random_fab.bgcolor = random.choice(fab_filtered) if fab_filtered else random.choice(palette)
-            complementary_color_text.update_color(get_complementary_color(random.choice(palette)))
+            complementary_color_text.update_color(random.choice(palette)) # DO NOT use get_complementary_color here
             build_swatch_row(bg_color)
             swatch_row_color = random.choice(palette)
             for combo in swatch_row.controls:
@@ -316,7 +316,7 @@ def main(page: ft.Page) -> None:
                     new_hex = "#{:02x}{:02x}{:02x}".format(r, clamp(g - 10), b)
                     change_bg({'hex': new_hex})
 
-        if e.key == "Tab" or e.key == "%":
+        if e.key == "Tab":
             """Show hotkey help dialog."""
             dialog = ft.AlertDialog(
                 title=ft.Text("Hotkeys"),
