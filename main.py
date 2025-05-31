@@ -24,7 +24,7 @@ def main(page: ft.Page) -> None:
     page.fonts = {
         config['font_family']: config['font_path'],
     }
-    page.theme = ft.Theme(font_family=config['theme']['font_family']) #Type: ignore
+    page.theme = ft.Theme(font_family=config['theme']['font_family']) # Type: ignore
     page.title = "Color Mixer"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     initial_bg = "#{:06x}".format(random.randint(0, 0xFFFFFF))
@@ -53,7 +53,7 @@ def main(page: ft.Page) -> None:
         swatch_row.update_swatch_row(
             match,
             page,
-            lambda c, m: swatch_row.make_bottom_sheet(c, m, swatches, change_bg)
+            lambda c, m: swatch_row.make_bottom_sheet(c, m, swatches, change_bg, text_click),
         )
 
     def update_text_colors(bg_color: Optional[str] = None, colors: Optional[List[str]] = None) -> None:
@@ -111,6 +111,7 @@ def main(page: ft.Page) -> None:
 
         try:
             c1 = c2 = ''
+            pair = None
             if not color:
                 c1 = (color1.value or '').strip()
                 c2 = (color2.value or '').strip()

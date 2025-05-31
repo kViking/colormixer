@@ -50,10 +50,13 @@ class SwatchRow(ft.Row):
         match: Dict[str, Any],
         swatches: List[Dict[str, Any]],
         change_bg: Callable[[Dict[str, str]], None],
+        text_click: Callable[[ft.ControlEvent], None],
     ) -> ft.BottomSheet:
-        combo_row = ft.Row(expand=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN, spacing=0)
+        combo_row = ft.Row(expand=True, alignment=ft.MainAxisAlignment.CENTER, spacing=0)
         sheet = ft.BottomSheet(
             ft.Column(
+                alignment=ft.MainAxisAlignment.START,
+                horizontal_alignment=ft.CrossAxisAlignment.START,
                 controls=[
                     combo_row,
                     ft.Text(
@@ -76,13 +79,14 @@ class SwatchRow(ft.Row):
                         name,
                         change_bg=change_bg,
                         palette=palette,
+                        on_click=text_click,
                     )
                 )
         return sheet
 
 class ColorSwatch(ft.Container):
     """Change the background color and palette when clicked."""
-    def __init__(self, color: str, name: str, change_bg: Callable[[Dict[str, Any]], None], palette: List[str], **kwargs: Any):
+    def __init__(self, color: str, name: str, change_bg: Callable[[Dict[str, Any]], None], on_click: Callable, palette: List[str], **kwargs: Any):
         super().__init__(
             bgcolor=color,
             expand=True,
@@ -94,26 +98,28 @@ class ColorSwatch(ft.Container):
         self.name = name
         self.change_bg = change_bg
         self.on_click = self._handle_click
+        self.alignment = ft.alignment.top_left
         self.content = ft.Column(
-            alignment=ft.MainAxisAlignment.END,
-            horizontal_alignment=ft.CrossAxisAlignment.END,
+            horizontal_alignment=ft.CrossAxisAlignment.START,
             expand=True,
             controls=[
-                ft.Text(
-                    theme_style=ft.TextThemeStyle.BODY_LARGE,
-                    spans=[
-                        ft.TextSpan(
-                            color,
-                            style=ft.TextStyle(color=get_complementary_color(color)),
-                        )
-                    ],
-                    expand=True,
-                ),
-                ft.Text(
-                    name,
-                    color=get_complementary_color(color),
-                    theme_style=ft.TextThemeStyle.BODY_LARGE,
-                ),
+            ft.Text(
+                theme_style=ft.TextThemeStyle.BODY_LARGE,
+                text_align=ft.TextAlign.RIGHT,
+                expand=True,
+                spans=[
+                ft.TextSpan(
+                    color,
+                    style=ft.TextStyle(color=get_complementary_color(color)),
+                    on_click=on_click
+                )
+                ],
+            ),
+            ft.Text(
+                name,
+                color=get_complementary_color(color),
+                theme_style=ft.TextThemeStyle.BODY_LARGE,
+            ),
             ],
         )
     def _handle_click(self, e: ft.ControlEvent) -> None:
