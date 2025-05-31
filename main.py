@@ -1,14 +1,19 @@
 import flet as ft
 import random
-import colorsys
-import re
 import json
+import yaml
+import os
 from typing import Optional, List, Dict, Any
 from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, SwatchRow, HistoryRow, ComplementaryColorText
 from color_utils import normalize, hexmixer, find_closest_swatch, get_complementary_color, hex_to_rgb
+from state import add_to_history
+
+# --- Load Config ---
+with open(os.path.join(os.path.dirname(__file__), 'config.yaml'), 'r') as f:
+    config = yaml.safe_load(f)
 
 # --- Load Swatches ---
-with open('swatches.json', 'r') as file:
+with open(os.path.join(os.path.dirname(__file__), config['swatches_file']), 'r') as file:
     swatches = json.load(file)
 
 # --- Main App ---
@@ -16,18 +21,18 @@ def main(page: ft.Page) -> None:
     """Main entry point for the Color Mixer app."""
     # Font and theme
     page.fonts = {
-        "VCR OSD Mono": "VCR_OSD_MONO.ttf",
+        config['font_family']: config['font_path'],
     }
-    page.theme = ft.Theme(font_family="VCR OSD Mono") #Type: ignore
+    page.theme = ft.Theme(font_family=config['theme']['font_family']) #Type: ignore
     page.title = "Color Mixer"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     initial_bg = "#{:06x}".format(random.randint(0, 0xFFFFFF))
     page.bgcolor = initial_bg
 
     # --- UI State ---
+    # Use session-based history if available
+    history: List[Dict[str, Any]] = page.session.get("history") or []
     text_elements: List[Any] = []
-    history: List[Dict[str, Any]] = []
-
 
     # --- UI Logic ---
     def text_click(e: ft.ControlEvent) -> None:
@@ -40,7 +45,6 @@ def main(page: ft.Page) -> None:
             ),
             bgcolor=get_complementary_color(page.bgcolor),
         ))
-
 
     def build_swatch_row(color: Optional[str] = None) -> None:
         """Update the swatch row based on the current or given color."""
@@ -122,7 +126,7 @@ def main(page: ft.Page) -> None:
                 else:
                     new_color = normalize(color)
                     page.update()
-
+                    # DO NOT early return here
 
             page.bgcolor = new_color
             mixed_color.spans[0].text = new_color
@@ -132,18 +136,9 @@ def main(page: ft.Page) -> None:
             else:
                 update_text_colors(bg_color=new_color)
             # Only add to history if not already present
-            if len(history) == 0 or (isinstance(history[-1], dict) and history[-1].get("hex") != new_color):
-                top_10 = history[-10:] if len(history) >= 10 else history
-                if any(entry.get("hex") == new_color for entry in top_10):
-                    return
-                entry = {"hex": new_color}
-                if not color and c1 and c2:
-                    entry["pair"] = (c1, c2)
-                elif pair:
-                    entry["pair"] = pair
-                history.append(entry)
-                history_row.update_history(history)
-                page.update()
+            add_to_history(page, history, new_color, pair if not color and c1 and c2 else None)
+            history_row.update_history(history)
+            page.update()
         except Exception as e:
             import traceback
             traceback.print_exc()
