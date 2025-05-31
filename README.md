@@ -1,42 +1,59 @@
 # 🎨 ColorMixer
 
-It's what it says on the tin: takes two colors, and mixes them. Whether you're a designer seeking the perfect blend, a developer needing color calculations, or just someone who enjoys playing with colors, ColorMixer has got you covered. Simple, straightforward, and surprisingly satisfying.
+ColorMixer lets you blend, explore, and copy colors with a clean, fast, and cross-platform interface. Whether you're a designer, developer, or just love color, this app is for you.
 
 ## Features
 
-- **Mix Colors Like a Pro:** Or like an amateur. We don’t judge.
-- **Cross-Platform:** Works on Linux, Android, and Windows, because we believe in equal opportunity for all operating systems (except maybe Mac OS).
-- **Lightning Fast:** Because you have better things to do than click on extra buttons.
-- **Minimalist UI:** So clean, Marie Kondo would approve.
-- **Screw Formatting:** Handles whatever
-  - (rrr, ggg, bbb)
-  - rrr, ggg, bbb
-  - rrr ggg bbb
-  - \#4edec1
-  - 4edec1 (the same thing but no hash)
+- **Mix Colors Instantly:** Enter two colors in any format (hex, RGB, with or without #, spaces, or commas) and see the result.
+- **Clickable Swatch Labels:** Click the color code in any swatch to copy or trigger actions—no more fiddling to grab a hex code.
+- **Palette Exploration:** Instantly see and navigate color combinations and swatches.
+- **Hotkey Navigation:** Use arrow keys (and Shift) to explore the RGB color space without leaving your keyboard.
+- **Cross-Platform:** Works on Linux, Windows, and Android. (Mac support coming soon!)
+- **Minimalist UI:** No clutter, just color. Designed for speed and clarity.
+- **History:** Quickly restore previous mixes and palettes.
 
 ## How to Use
 
 1. Open the app.
-2. Mix some colors.
-3. Marvel at your creation.
-4. Realize there are little numbers at the bottom sometimes.
-5. Find inspiration.
-6. Repeat until you forget why you started.
+2. Enter two colors (any format: `#4edec1`, `4edec1`, `78, 90, 123`, `(78,90,123)`, etc.).
+3. See the mixed color and its RGB value.
+4. Click any swatch label to copy its color code.
+5. Use arrow keys to explore color variations.
+  - ↑/↓ to adjust the green
+  - ←/→ to adjust red
+  - Shift + ↑/↓ to adjust blue
+6. Click history items to restore previous mixes.
+
+## Keyboard Shortcuts
+
+- **Arrow Keys:** Adjust the red/green channels.
+- **Shift + Up/Down:** Adjust the blue channel.
+- **Tab:** Show hotkey help.
 
 ## Installation
 
 ### Windows
+- Download the installer from the [latest release](https://github.com/kviking/colormixer/releases). (Unsigned, but safe to install over old versions.)
 
-Grab the installer from the latest [release](https://github.com/kviking/colormixer/releases)! It will probably set off every antivirus alarm because it's unsigned, but on the bright side it should also be fine to install on top of any old versions.
+### Linux
+- Build from source with Python 3.12+ and `pip install -r requirements.txt`, then `flet build linux .`
+
+### Android
+- Use the APK in `build/apk/` (experimental).
+
+## Customization & Hacking
+
+- All UI components are modularized in the `components/` folder for easy hacking.
+- Swatches and palettes are defined in `swatches.json`—add your own!
+- Build scripts and installer logic are in `wbuild.sh` and `inno-colormixer.iss`.
 
 ## Contributing
 
-Pull requests welcome! Bonus points for code that actually works. I am a meat machine that poops and writes bad code.
+Pull requests are welcome! See the code, tests, and hacking guide for details. Bonus points for code that actually works.
 
 ## License
 
-Screw licenses, this isn't Mozart. If you get something out of it, I'm happy for you.
+No formal license. If you get something out of it, I'm happy for you.
 
 ---
 

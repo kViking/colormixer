@@ -1,5 +1,47 @@
 # Changelog
 
+## [Unreleased] - 2025-05-31
+
+### Customer-Facing Changes
+
+- **Clickable Swatch Labels:**
+  - You can now click on the color label text in each swatch (the color hex code) to trigger actions, thanks to the new `TextSpan.on_click` method in the ColorSwatch component. This makes it easier to interact with and copy color codes directly from the swatch display.
+
+---
+
+### Developer-Facing Changes
+
+- **Component Refactoring & Modularization:**
+  - All UI components have been modularized into the `components/` package for maintainability and clarity.
+  - Each component (inputs, display, swatches, fab, history) is now in its own file with clear class boundaries and docstrings.
+
+- **Type Safety & TypedDicts:**
+  - The `find_closest_swatch` function now always returns a value matching the `CloseSwatch` TypedDict, ensuring type safety and consistency across the codebase.
+  - All consuming code (e.g., `SwatchRow.update_swatch_row`) expects and handles this structure.
+
+- **Event Handling & UI Logic:**
+  - Event handler structure has been refactored for maintainability and clarity.
+  - Hotkey navigation and color plane movement logic have been improved and debugged.
+  - Focus tracking for Flet text fields is now robust and extensible.
+
+- **Testing Infrastructure:**
+  - Comprehensive test suite added under `tests/` covering color logic, state/history, UI components, and hotkey handling.
+  - Dummy classes are used in tests to avoid Flet type errors and allow for isolated logic testing.
+
+- **Installer & Build Improvements:**
+  - Inno Setup script and build scripts have been updated for better version bumping and release automation.
+
+- **Documentation:**
+  - All public classes and functions now include detailed docstrings.
+  - A markdown hacking guide (`1337.md`) and improved README for easier onboarding and customization.
+
+- **General Code Quality:**
+  - Improved error handling and guard clauses throughout.
+  - Variable and function names are now concise but descriptive.
+  - Redundant code and debug prints have been removed.
+
+---
+
 ## [0.1.6] - 2025-05-30
 
 ### Added
