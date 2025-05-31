@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from typing import Optional, TypedDict
 import colorsys
 
 def normalize(color: Optional[str]) -> str:
@@ -96,10 +96,24 @@ def get_complementary_color(hex_color: Optional[str]) -> str:
         comp_rgb = best_rgb
     return "#{:02x}{:02x}{:02x}".format(*comp_rgb)
 
-def hex_to_rgb(hex_color: Optional[str]) -> str:
+class RGBDict(TypedDict):
+    """TypedDict for RGB color representation."""
+    string: str
+    tuple: tuple[int, int, int]
+
+def _hex_to_rgb(hex_color: Optional[str]) -> RGBDict:
     """Convert a hex color to an RGB tuple."""
     hex_color = normalize(hex_color)
     if hex_color == 'INVALID':
         raise ValueError('Invalid hex color input')
     rgb = (int(hex_color[1:3], 16), int(hex_color[3:5], 16), int(hex_color[5:7], 16))
-    return f"({rgb[0]}, {rgb[1]}, {rgb[2]})"
+    return {
+        "string": f"({rgb[0]}, {rgb[1]}, {rgb[2]})",
+        "tuple": rgb,
+    }
+
+class HexToRgb():
+    def __init__(self, hex_color: str):
+        rgb = _hex_to_rgb(hex_color)
+        self.tuple = rgb['tuple']
+        self.string = rgb['string']

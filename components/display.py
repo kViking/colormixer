@@ -1,6 +1,6 @@
 import flet as ft
 from typing import Callable, Any
-from color_utils import get_complementary_color, hex_to_rgb
+from color_utils import get_complementary_color, HexToRgb
 
 class MixedColorText(ft.Text):
     """Display the mixed color hex value, clickable for copy."""
@@ -33,7 +33,7 @@ class ComplementaryColorText(ft.Text):
 class MixedRGBText(ft.Text):
     """Display the mixed color as an RGB tuple, clickable for copy."""
     def __init__(self, initial_bg: str, on_click: Callable, **kwargs: Any):
-        rgb_str = hex_to_rgb(initial_bg)
+        rgb_str = HexToRgb(initial_bg).string
         super().__init__(
             theme_style=ft.TextThemeStyle.DISPLAY_LARGE,
             selectable=True,

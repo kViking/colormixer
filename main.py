@@ -5,8 +5,9 @@ import yaml
 import os
 from typing import Optional, List, Dict, Any
 from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, SwatchRow, HistoryRow, ComplementaryColorText
-from color_utils import normalize, hexmixer, find_closest_swatch, get_complementary_color, hex_to_rgb
+from color_utils import normalize, hexmixer, find_closest_swatch, get_complementary_color, HexToRgb
 from state import add_to_history
+import hotkeys
 
 # --- Load Config ---
 with open(os.path.join(os.path.dirname(__file__), 'config.yaml'), 'r') as f:
@@ -130,7 +131,7 @@ def main(page: ft.Page) -> None:
 
             page.bgcolor = new_color
             mixed_color.spans[0].text = new_color
-            mixed_rgb.spans[0].text = hex_to_rgb(new_color)
+            mixed_rgb.spans[0].text = HexToRgb(new_color).string
             if isinstance(color, dict) and "colors" in color and color["colors"]:
                 update_text_colors(colors=color["colors"])
             else:
@@ -144,73 +145,8 @@ def main(page: ft.Page) -> None:
             traceback.print_exc()
             return
 
-    def clamp(val, minval=0, maxval=255):
-        return max(minval, min(maxval, val))
-
     # --- Hotkeys ---
-    def on_hotkey(e: ft.KeyboardEvent) -> None:
-        """Handle hotkeys for changing background color."""
-        if e.shift:
-            match e.key:
-                case "Arrow Up":
-                    new_color = normalize(page.bgcolor)
-                    if new_color != 'INVALID':
-                        r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
-                        new_hex = "#{:02x}{:02x}{:02x}".format(r, g, clamp(b + 10))
-                        change_bg({'hex': new_hex})
-                case "Arrow Down":
-                    new_color = normalize(page.bgcolor)
-                    if new_color != 'INVALID':
-                        r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
-                        new_hex = "#{:02x}{:02x}{:02x}".format(r, g, clamp(b - 10))
-                        change_bg({'hex': new_hex})
-            return
-
-        match e.key:
-            case "Arrow Left":
-                new_color = normalize(page.bgcolor)
-                if new_color != 'INVALID':
-                    r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
-                    new_hex = "#{:02x}{:02x}{:02x}".format(clamp(r - 10), g, b)
-                    change_bg({'hex': new_hex})
-            case "Arrow Right":
-                new_color = normalize(page.bgcolor)
-                if new_color != 'INVALID':
-                    r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
-                    new_hex = "#{:02x}{:02x}{:02x}".format(clamp(r + 10), g, b)
-                    change_bg({'hex': new_hex})
-            case "Arrow Up":
-                new_color = normalize(page.bgcolor)
-                if new_color != 'INVALID':
-                    r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
-                    new_hex = "#{:02x}{:02x}{:02x}".format(r, clamp(g + 10), b)
-                    change_bg({'hex': new_hex})
-            case "Arrow Down":
-                new_color = normalize(page.bgcolor)
-                if new_color != 'INVALID':
-                    r, g, b = int(new_color[1:3], 16), int(new_color[3:5], 16), int(new_color[5:7], 16)
-                    new_hex = "#{:02x}{:02x}{:02x}".format(r, clamp(g - 10), b)
-                    change_bg({'hex': new_hex})
-
-        if e.key == "Tab":
-            """Show hotkey help dialog."""
-            dialog = ft.AlertDialog(
-                title=ft.Text("Hotkeys"),
-                content=ft.Text(
-                    "Use the arrow keys to adjust the background color:\n"
-                    "- Left/Right: Adjust red channel\n"
-                    "- Up/Down: Adjust green channel\n"
-                    "- Shift + Up/Down: Adjust blue channel\n"
-                    "Press Escape to close this dialog."
-                ),
-                actions=[ft.TextButton("Close", on_click=lambda _: page.close(dialog))],
-            )
-            page.open(dialog)
-            page.update()
-        else:
-            return
-                
-    page.on_keyboard_event = on_hotkey
+    page.on_keyboard_event = hotkeys.make_hotkey_handler(page, change_bg)
 
     # --- UI Components (stateless) ---
     color1 = ColorInput(border_color=get_complementary_color(initial_bg), on_change=lambda e: change_bg(), on_submit=lambda e: change_bg())
