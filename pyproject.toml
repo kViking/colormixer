@@ -1,0 +1,14 @@
+[project]
+name = "colormixer"
+version = "0.1.0"
+description = "A minimalist cross-platform color mixing app."
+authors = ["Your Name <your@email.com>"]
+requires-python = ">=3.12"
+dependencies = [
+    "flet>=0.28.3",
+    "pyaml>=25.5"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
