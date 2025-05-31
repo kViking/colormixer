@@ -197,26 +197,27 @@ def main(page: ft.Page) -> None:
                     new_color = normalize(color)
                     page.update()
                     return
-                page.bgcolor = new_color
-                mixed_color.spans[0].text = new_color
-                mixed_rgb.spans[0].text = tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
-                if isinstance(color, dict) and "colors" in color and color["colors"]:
-                    update_text_colors(colors=color["colors"])
-                else:
-                    update_text_colors(bg_color=new_color)
-                # Only add to history if not already present
-                if len(history) == 0 or (isinstance(history[-1], dict) and history[-1].get("hex") != new_color):
-                    top_10 = history[-10:] if len(history) >= 10 else history
-                    if any(entry.get("hex") == new_color for entry in top_10):
-                        return
-                    entry = {"hex": new_color}
-                    if not color and c1 and c2:
-                        entry["pair"] = (c1, c2)
-                    elif pair:
-                        entry["pair"] = pair
-                    history.append(entry)
-                    history_row.update_history(history)
-                    page.update()
+
+            page.bgcolor = new_color
+            mixed_color.spans[0].text = new_color
+            mixed_rgb.spans[0].text = tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)).__str__()
+            if isinstance(color, dict) and "colors" in color and color["colors"]:
+                update_text_colors(colors=color["colors"])
+            else:
+                update_text_colors(bg_color=new_color)
+            # Only add to history if not already present
+            if len(history) == 0 or (isinstance(history[-1], dict) and history[-1].get("hex") != new_color):
+                top_10 = history[-10:] if len(history) >= 10 else history
+                if any(entry.get("hex") == new_color for entry in top_10):
+                    return
+                entry = {"hex": new_color}
+                if not color and c1 and c2:
+                    entry["pair"] = (c1, c2)
+                elif pair:
+                    entry["pair"] = pair
+                history.append(entry)
+                history_row.update_history(history)
+                page.update()
         except Exception as e:
             import traceback
             traceback.print_exc()
