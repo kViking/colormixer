@@ -49,6 +49,6 @@ class RandomFAB(ft.FloatingActionButton):
         if not self.history or self.history[-1] != new_color:
             self.history.append({'hex': new_color})
             self.history_row.update_history(self.history)
-        self.update_text_colors(bg_color=new_color)
+        self.update_text_colors(new_color)
         if self.page is not None:
             self.page.update()

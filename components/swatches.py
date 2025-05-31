@@ -1,6 +1,6 @@
 import flet as ft
 from typing import Callable, List, Dict, Any, Optional
-from color_utils import get_complementary_color
+from color_utils import get_complementary_color, CloseSwatch
 
 class SwatchRow(ft.Row):
     """Display color swatch combinations and handle swatch selection."""
@@ -14,29 +14,29 @@ class SwatchRow(ft.Row):
         self.vertical_alignment = ft.CrossAxisAlignment.CENTER
         self._page: Optional[ft.Page] = None
         self._make_bottom_sheet: Optional[Callable] = None
-        self._match: Optional[Dict[str, Any]] = None
+        self._match: Optional[CloseSwatch] = None
 
-    def update_swatch_row(self, match: Optional[Dict[str, Any]], page: ft.Page, make_bottom_sheet: Callable, route: Optional[str] = None) -> None:
+    def update_swatch_row(self, match: CloseSwatch, page: ft.Page, make_bottom_sheet: Callable, route: Optional[str] = None) -> None:
         self.controls.clear()
         self._page = page
         self._make_bottom_sheet = make_bottom_sheet
         self._match = match
         self._route = route
         bgcolor = page.bgcolor if isinstance(page.bgcolor, str) and page.bgcolor else "#000000"
-        if match:
-            for combo in match['combinations']:
-                self.controls.append(
-                    ft.Text(
-                        theme_style=ft.TextThemeStyle.BODY_LARGE,
-                        spans=[
-                            ft.TextSpan(
-                                combo,
-                                style=ft.TextStyle(color=get_complementary_color(bgcolor)),
-                                on_click=self._handle_combo_click,
-                            )
-                        ],
-                    )
+        combinations = match.get('combinations') or []
+        for combo in combinations:
+            self.controls.append(
+                ft.Text(
+                    theme_style=ft.TextThemeStyle.BODY_LARGE,
+                    spans=[
+                        ft.TextSpan(
+                            combo,
+                            style=ft.TextStyle(color=get_complementary_color(bgcolor)),
+                            on_click=self._handle_combo_click,
+                        )
+                    ],
                 )
+            )
         page.update()
 
     def _handle_combo_click(self, e: ft.ControlEvent) -> None:

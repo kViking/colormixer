@@ -1,2 +1,0 @@
-# This file is now deprecated. All components have been moved to the components/ package as separate modules.
-# See components/inputs.py, components/display.py, components/fab.py, components/swatches.py, components/history.py, and components/__init__.py

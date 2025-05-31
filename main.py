@@ -50,15 +50,23 @@ def main(page: ft.Page) -> None:
     def build_swatch_row(color: Optional[str] = None) -> None:
         """Update the swatch row based on the current or given color."""
         match = find_closest_swatch(color or page.bgcolor, swatches)
-        swatch_row.update_swatch_row(
-            match,
-            page,
-            lambda c, m: swatch_row.make_bottom_sheet(c, m, swatches, change_bg, text_click),
-        )
+        if match is not None:
+            swatch_row.update_swatch_row(
+                match,
+                page,
+                lambda c, m: swatch_row.make_bottom_sheet(c, m, swatches, change_bg, text_click),
+            )
+        else:
+            swatch_row.update_swatch_row(
+                {'hex': '#000000', 'name': None, 'combinations': []},
+                page,
+                lambda c, m: swatch_row.make_bottom_sheet(c, m, swatches, change_bg, text_click),
+            )
 
-    def update_text_colors(bg_color: Optional[str] = None, colors: Optional[List[str]] = None) -> None:
-        if colors:
-            palette = [c for c in colors if c != page.bgcolor] or colors
+    def update_text_colors(color_info: Optional[Any] = None) -> None:
+        # Accepts either a list of colors or a single bg_color string
+        if isinstance(color_info, list):
+            palette = [c for c in color_info if c != page.bgcolor] or color_info
             for element in text_elements:
                 if hasattr(element, 'update_color'):
                     element.update_color(random.choice(palette))
@@ -70,26 +78,26 @@ def main(page: ft.Page) -> None:
                 field.update_color(get_complementary_color(field.value) if normalize(field.value) != 'INVALID' else random.choice(palette))
             random_fab.update_color(random.choice(palette))
             complementary_color_text.update_color(random.choice(palette))
-            build_swatch_row(bg_color)
+            build_swatch_row(page.bgcolor)
             swatch_row_color = random.choice(palette)
             for combo in swatch_row.controls:
                 if isinstance(combo, ft.Text) and combo.spans:
                     combo.spans[0].style = ft.TextStyle(color=swatch_row_color)
-        elif bg_color:
-            complementary = get_complementary_color(bg_color)
+        elif isinstance(color_info, str):
+            complementary = get_complementary_color(color_info)
             for element in text_elements:
                 if hasattr(element, 'update_color'):
                     element.update_color(complementary)
                 else:
                     element.color = complementary
             for field in [color1, color2]:
-                field.update_bg_color(bg_color)
+                field.update_bg_color(color_info)
                 field.update_border_color(complementary)
                 field.update_focused_border_color(complementary)
                 field.update_color(get_complementary_color(field.value) if normalize(field.value) != 'INVALID' else complementary)
             random_fab.update_color(complementary)
             complementary_color_text.update_color(complementary)
-            build_swatch_row(bg_color)
+            build_swatch_row(color_info)
         page.update()
 
     def change_bg(color: Optional[Any] = None, clear_fields: bool = False) -> None:
@@ -134,9 +142,9 @@ def main(page: ft.Page) -> None:
             mixed_color.spans[0].text = new_color
             mixed_rgb.spans[0].text = HexToRgb(new_color).string
             if isinstance(color, dict) and "colors" in color and color["colors"]:
-                update_text_colors(colors=color["colors"])
+                update_text_colors(color["colors"])
             else:
-                update_text_colors(bg_color=new_color)
+                update_text_colors(new_color)
             # Only add to history if not already present
             add_to_history(page, history, new_color, pair if not color and c1 and c2 else None)
             history_row.update_history(history)
@@ -215,7 +223,7 @@ def main(page: ft.Page) -> None:
         }
     )
     history_row.update_history(history)
-    update_text_colors(bg_color=initial_bg)
+    update_text_colors(initial_bg)
     page.update()
 
 if __name__ == "__main__":

@@ -30,7 +30,13 @@ def hexmixer(color1: Optional[str], color2: Optional[str]) -> str:
     r, g, b = (r1 + r2) // 2, (g1 + g2) // 2, (b1 + b2) // 2
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
-def find_closest_swatch(color: Optional[str], swatches) -> Optional[dict]:
+class CloseSwatch(TypedDict):
+    """TypedDict for a color swatch with a hex value."""
+    hex: str
+    name: Optional[str]
+    combinations: Optional[list[str]]
+
+def find_closest_swatch(color: Optional[str], swatches) -> Optional[CloseSwatch]:
     """Find the closest swatch to the given color. Returns None if not close enough."""
     color = normalize(color)
     if color == 'INVALID':
@@ -38,7 +44,7 @@ def find_closest_swatch(color: Optional[str], swatches) -> Optional[dict]:
     closest_swatch = None
     closest_distance = float('inf')
     for swatch in swatches:
-        swatch_color = normalize(swatch['hex'])
+        swatch_color = normalize(swatch.get('hex'))
         if swatch_color == 'INVALID':
             continue
         r1, g1, b1 = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
@@ -47,9 +53,14 @@ def find_closest_swatch(color: Optional[str], swatches) -> Optional[dict]:
         if distance < closest_distance:
             closest_distance = distance
             closest_swatch = swatch
-    if closest_distance > 20:  # Threshold for "close enough"
+    if closest_distance > 20 or closest_swatch is None:  # Threshold for "close enough"
         return None
-    return closest_swatch
+    # Ensure output matches CloseSwatch TypedDict
+    return {
+        'hex': closest_swatch.get('hex', '#000000'),
+        'name': closest_swatch.get('name'),
+        'combinations': closest_swatch.get('combinations', []),
+    }
 
 def get_complementary_color(hex_color: Optional[str]) -> str:
     """Return a complementary color for the given hex color, ensuring sufficient contrast."""
