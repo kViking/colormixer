@@ -2,10 +2,10 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Colormixer"
-#define MyAppVersion "0.1.3"
+#define MyAppVersion "0.1.7"
 #define MyAppPublisher "impostor Enterprises"
 #define MyAppURL "https://github.com/kviking/colormixer"
-#define MyAppExeName "MyProg-x64.exe"
+#define MyAppExeName "colormixer.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
