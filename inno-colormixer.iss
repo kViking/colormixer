@@ -12,7 +12,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{ADB0C522-A243-4C6F-81A8-DE5109312C9B}}
 AppName={#AppName}
-AppVersion={#VersionInfoCompany=Publisher}
+AppVersion={#Version}
 ;AppVerName={#AppName} {#VersionInfoCompany=AppPublisher}
 AppPublisher={#Publisher}
 AppPublisherURL={#URL}
@@ -25,16 +25,23 @@ PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=commandline
 OutputDir=C:\Users\Administrator\Documents\flet\colormixer
 OutputBaseFilename=ColorMixerInstaller-{#Version}
+Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
+DisableDirPage=yes
+DisableProgramGroupPage=yes
+SetupIconFile=assets\cmixer_icon.ico
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Icons]
-Name: "{userprograms}\ColorMixer"; Filename: "{app}\colormixer.exe"
+Name: "{userprograms}\ColorMixer"; Filename: "{app}\colormixer.exe"; IconFilename: "{app}\cmixer_icon.ico"
 
 [Files]
 Source: "build\windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+
+[Run]
+Filename: "{app}\colormixer.exe"; Description: "Launch ColorMixer"; Flags: nowait postinstall skipifsilent
 
