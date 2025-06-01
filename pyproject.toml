@@ -1,12 +1,11 @@
 [project]
 name = "colormixer"
-version = "0.1.0"
+version = "0.2.0"
 description = "A minimalist cross-platform color mixing app."
 authors = ["Your Name <your@email.com>"]
 requires-python = ">=3.12"
 dependencies = [
-    "flet>=0.28.3",
-    "pyaml>=25.5"
+    "flet>=0.28.3"
 ]
 
 [build-system]

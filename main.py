@@ -1,17 +1,16 @@
 import flet as ft
 import random
 import json
-import yaml
 import os
 from typing import Optional, List, Dict, Any
 from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, SwatchRow, HistoryRow, ComplementaryColorText
 from color_utils import normalize, hexmixer, find_closest_swatch, get_complementary_color, HexToRgb
 from state import add_to_history
 import hotkeys
+from config import CONFIG
 
 # --- Load Config ---
-with open(os.path.join(os.path.dirname(__file__), 'config.yaml'), 'r') as f:
-    config = yaml.safe_load(f)
+config = CONFIG
 
 # --- Load Swatches ---
 with open(os.path.join(os.path.dirname(__file__), config['swatches_file']), 'r') as file:
