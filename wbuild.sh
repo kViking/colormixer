@@ -9,6 +9,7 @@
 #   ./wbuild.sh --nobuild      # Skip Flet build, only compile installer
 #   ./wbuild.sh --nobuild 1.2.3 # Skip build, use 1.2.3 as the version
 #   ./wbuild.sh 1.2.3 --nobuild # Use 1.2.3 as the version, skip build
+#   ./wbuild.sh --nobump       # Use max version found, do not auto-bump
 #   ./wbuild.sh -h | --help     # Show this help message
 #
 # This script will:
@@ -23,9 +24,10 @@
 
 version=""
 nobuild=0
+nobump=0
 pending_version=""
 
-# Parse arguments for --version, --nobuild, or a single positional version argument
+# Parse arguments for --version, --nobuild, --nobump, or a single positional version argument
 for ((i=1; i<=$#; i++)); do
     arg="${!i}"
     if [[ "$arg" == "-h" || "$arg" == "--help" ]]; then
@@ -36,11 +38,13 @@ for ((i=1; i<=$#; i++)); do
         echo -e "  \033[1;32m./wbuild.sh --nobuild\033[0m      # Skip Flet build, only compile installer"
         echo -e "  \033[1;32m./wbuild.sh --nobuild 1.2.3\033[0m # Skip build, use 1.2.3 as the version"
         echo -e "  \033[1;32m./wbuild.sh 1.2.3 --nobuild\033[0m # Use 1.2.3 as the version, skip build"
+        echo -e "  \033[1;32m./wbuild.sh --nobump\033[0m       # Use max version found, do not auto-bump"
         echo -e "  \033[1;32m./wbuild.sh -h | --help\033[0m     # Show this help message"
         echo -e "\n\033[1;36mOptions:\033[0m"
         echo -e "  \033[1;33m-h, --help\033[0m      Show this help message and exit."
         echo -e "  \033[1;33m--version VER\033[0m   Specify version to use."
         echo -e "  \033[1;33m--nobuild\033[0m       Skip Flet build, only compile installer."
+        echo -e "  \033[1;33m--nobump\033[0m        Use max version found, do not auto-bump."
         echo -e "\n\033[1;36mThis script will:\033[0m"
         echo -e "  - Determine the version to use (from argument, --version, or by bumping the latest installer)"
         echo -e "  - Build the Flet Windows app (unless --nobuild is given)"
@@ -53,6 +57,10 @@ for ((i=1; i<=$#; i++)); do
     fi
     if [[ "$arg" == "--nobuild" ]]; then
         nobuild=1
+        continue
+    fi
+    if [[ "$arg" == "--nobump" ]]; then
+        nobump=1
         continue
     fi
     if [[ "$arg" == "--version" ]]; then
@@ -86,10 +94,15 @@ if [[ -z "$version" ]]; then
             major="${BASH_REMATCH[1]}"
             minor="${BASH_REMATCH[2]}"
             patch="${BASH_REMATCH[3]}"
-            new_version="$major.$minor.$((patch + 1))"
-            version="$new_version"
-            echo -e "\033[1;32mVersion bumped: $current_version -> $new_version\033[0m"
-            echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
+            if [[ $nobump -eq 1 ]]; then
+                version="$current_version"
+                echo -e "\033[1;32mUsing max version found: $version (no bump)\033[0m"
+            else
+                new_version="$major.$minor.$((patch + 1))"
+                version="$new_version"
+                echo -e "\033[1;32mVersion bumped: $current_version -> $new_version\033[0m"
+                echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
+            fi
         else
             echo -e "\033[1;31mCould not parse current version from installer filename.\033[0m"
             exit 1
