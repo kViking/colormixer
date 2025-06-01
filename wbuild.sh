@@ -1,10 +1,46 @@
 #!/bin/bash
 
+# wbuild.sh - Build and package ColorMixer for Windows
+#
+# Usage:
+#   ./wbuild.sh                # Auto-bump patch version from latest ColorMixerInstaller-*.exe
+#   ./wbuild.sh 1.2.3          # Use 1.2.3 as the version
+#   ./wbuild.sh --version 1.2.3 # Use 1.2.3 as the version
+#   ./wbuild.sh -h | --help     # Show this help message
+#
+# This script will:
+#   - Determine the version to use (from argument, --version, or by bumping the latest installer)
+#   - Build the Flet Windows app
+#   - Compile the Inno Setup installer with the correct version
+#
+# Requirements:
+#   - Flet CLI installed and in PATH
+#   - Inno Setup 6 installed at /c/Program Files (x86)/Inno Setup 6/ISCC.exe
+#   - Run from the project root directory
+
 version=""
 
 # Parse arguments for --version or a single positional version argument
 for ((i=1; i<=$#; i++)); do
     arg="${!i}"
+    if [[ "$arg" == "-h" || "$arg" == "--help" ]]; then
+        echo "\nUsage:"
+        echo "  ./wbuild.sh                # Auto-bump patch version from latest ColorMixerInstaller-*.exe"
+        echo "  ./wbuild.sh 1.2.3          # Use 1.2.3 as the version"
+        echo "  ./wbuild.sh --version 1.2.3 # Use 1.2.3 as the version"
+        echo "\nOptions:"
+        echo "  -h, --help      Show this help message and exit."
+        echo "  --version VER   Specify version to use."
+        echo "\nThis script will:"
+        echo "  - Determine the version to use (from argument, --version, or by bumping the latest installer)"
+        echo "  - Build the Flet Windows app"
+        echo "  - Compile the Inno Setup installer with the correct version"
+        echo "\nRequirements:"
+        echo "  - Flet CLI installed and in PATH"
+        echo "  - Inno Setup 6 installed at /c/Program Files (x86)/Inno Setup 6/ISCC.exe"
+        echo "  - Run from the project root directory\n"
+        exit 0
+    fi
     if [[ "$arg" == "--version" ]]; then
         # Get the next argument as the version string
         if [[ -n "${@:$((i+1)):1}" ]]; then
