@@ -90,7 +90,7 @@ echo "Build completed successfully."
 echo "Compiling Inno Setup installer..."
 iscc="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
 if [ -f "$iscc" ]; then
-    "$iscc" /DMyAppVersion=$version ./inno-colormixer.iss
+    "$iscc" /DVersion=$version ./inno-colormixer.iss
     if [ $? -ne 0 ]; then
         echo "Inno Setup compilation failed. Please check the output for errors."
         exit 1
