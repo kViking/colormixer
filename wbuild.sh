@@ -99,9 +99,6 @@ if [[ -z "$version" ]]; then
         echo -e "\033[1;33mNo existing installer found. Defaulting to 0.1.0.\033[0m"
         echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
     fi
-elif [[ "$version" == "$new_version" ]]; then
-    # Only print auto-bump messages if we actually auto-bumped
-    echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
 else
     echo -e "\033[1;32mUsing provided version: $version\033[0m"
 fi
