@@ -1,4 +1,4 @@
-from color_utils import normalize, HexToRgb
+from color_utils import normalize, HexToRgb, get_complementary_color
 import flet as ft
 from typing import Any, Callable
 
@@ -47,17 +47,23 @@ def make_hotkey_handler(page: ft.Page, change_bg: Callable[[Any], None]) -> Call
                     r, g, b = HexToRgb(hex_color).tuple
                     new_hex = "#{:02x}{:02x}{:02x}".format(r, clamp(g - 10), b)
                     change_bg({'hex': new_hex})
-        if e.key == "Tab":
+        if e.key.lower() == "h":
             dialog = ft.AlertDialog(
-                title=ft.Text("Hotkeys"),
+                title=ft.Text("Hotkeys", style=ft.TextStyle(color=page.bgcolor)),
+                bgcolor=get_complementary_color(page.bgcolor),
                 content=ft.Text(
                     "Use the arrow keys to adjust the background color:\n"
                     "- Left/Right: Adjust red channel\n"
                     "- Up/Down: Adjust green channel\n"
                     "- Shift + Up/Down: Adjust blue channel\n"
-                    "Press Escape to close this dialog."
+                    "Press Escape to close this dialog.",
+                    style=ft.TextStyle(color=page.bgcolor)
                 ),
-                actions=[ft.TextButton("Close", on_click=lambda _: page.close(dialog))],
+                actions=[ft.TextButton(
+                    "Close", 
+                    on_click=lambda _: page.close(dialog),
+                    style=ft.ButtonStyle(color=get_complementary_color(page.bgcolor), bgcolor=page.bgcolor)
+                )],
             )
             page.open(dialog)
             page.update()

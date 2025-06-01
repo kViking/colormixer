@@ -24,13 +24,13 @@ class DummyPage:
         self.events.append('update')
 
 def test_main_runs(monkeypatch):
-    # Patch out file loading and random
-    monkeypatch.setattr(main, 'yaml', types.SimpleNamespace(safe_load=lambda f: {
+    # Patch out config and random
+    monkeypatch.setattr(main, 'CONFIG', {
         'font_family': 'VCR OSD Mono',
         'font_path': 'VCR_OSD_MONO.ttf',
         'theme': {'font_family': 'VCR OSD Mono'},
         'swatches_file': 'swatches.json',
-    }))
+    })
     monkeypatch.setattr(main, 'json', types.SimpleNamespace(load=lambda f: [
         {"hex": "#ff0000", "name": "Red", "combinations": ["A"]},
         {"hex": "#00ff00", "name": "Green", "combinations": ["B"]},

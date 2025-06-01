@@ -4,7 +4,7 @@ ColorMixer lets you blend, explore, and copy colors with a clean, fast, and cros
 
 ## Features
 
-- **Mix Colors Instantly:** Enter two colors in any format (hex, RGB, with or without #, spaces, or commas) and see the result.
+- **Mix Colors Instantly:** Enter two colors in any format (hex, RGB, with or without #, spaces or commas) and see the result.
 - **Clickable Swatch Labels:** Click the color code in any swatch to copy or trigger actions—no more fiddling to grab a hex code.
 - **Palette Exploration:** Instantly see and navigate color combinations and swatches.
 - **Hotkey Navigation:** Use arrow keys (and Shift) to explore the RGB color space without leaving your keyboard.
@@ -19,10 +19,10 @@ ColorMixer lets you blend, explore, and copy colors with a clean, fast, and cros
 3. See the mixed color and its RGB value.
 4. Click any swatch label to copy its color code.
 5. Use arrow keys to explore color variations.
-  - ↑/↓ to adjust the green
-  - ←/→ to adjust red
-  - Shift + ↑/↓ to adjust blue
-6. Click history items to restore previous mixes.
+
+- ↑/↓ to adjust green
+- ←/→ to adjust red
+- Shift + ↑/↓ to adjust blue
 
 ## Keyboard Shortcuts
 
@@ -33,12 +33,15 @@ ColorMixer lets you blend, explore, and copy colors with a clean, fast, and cros
 ## Installation
 
 ### Windows
+
 - Download the installer from the [latest release](https://github.com/kviking/colormixer/releases). (Unsigned, but safe to install over old versions.)
 
 ### Linux
+
 - Build from source with Python 3.12+ and `pip install -r requirements.txt`, then `flet build linux .`
 
 ### Android
+
 - Use the APK in `build/apk/` (experimental).
 
 ## Customization & Hacking
