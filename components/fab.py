@@ -9,7 +9,7 @@ class RandomFAB(ft.FloatingActionButton):
     """Randomize the background color and update history."""
     def __init__(
         self, page: ft.Page, mixed_color: MixedColorText, mixed_rgb: MixedRGBText, color1: ColorInput, color2: ColorInput,
-        update_text_colors: Callable, history: List[Dict[str, Any]], history_row: HistoryRow, **kwargs: Any
+        update_text_colors: Callable, history: List[Dict[str, Any]], history_row: HistoryRow, complementary_color_text, **kwargs: Any
     ):
         super().__init__(
             icon=ft.Icons.SHUFFLE,
@@ -25,6 +25,7 @@ class RandomFAB(ft.FloatingActionButton):
         self.update_text_colors = update_text_colors
         self.history = history
         self.history_row = history_row
+        self.complementary_color_text = complementary_color_text
         self.on_click = self._handle_click
 
     def update_color(self, color: str) -> None:
@@ -42,6 +43,10 @@ class RandomFAB(ft.FloatingActionButton):
         try:
             self.mixed_color.spans[0].text = new_color
             self.mixed_rgb.spans[0].text = str(tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)))
+            # Update complementary color text
+            from color_utils import get_complementary_color
+            complementary = get_complementary_color(new_color)
+            self.complementary_color_text.spans[0].text = complementary
         except (AttributeError, IndexError):
             pass
         for field in (self.color1, self.color2):

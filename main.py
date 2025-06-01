@@ -23,7 +23,7 @@ def main(page: ft.Page) -> None:
     page.fonts = {
         config['font_family']: config['font_path'],
     }
-    page.theme = ft.Theme(font_family=config['theme']['font_family']) # Type: ignore
+    page.theme = ft.Theme(font_family=config.get('theme', {}).get('font_family', 'VCR_OSD_MONO'))
     page.title = "Color Mixer"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     initial_bg = "#{:06x}".format(random.randint(0, 0xFFFFFF))
@@ -157,6 +157,7 @@ def main(page: ft.Page) -> None:
             page.bgcolor = new_color
             mixed_color.spans[0].text = new_color
             mixed_rgb.spans[0].text = HexToRgb(new_color).string
+            complementary_color_text.spans[0].text = complementary
             if palette and palette_colors:
                 update_text_colors(palette_colors, palette, palette_colors)
             else:
@@ -215,7 +216,8 @@ def main(page: ft.Page) -> None:
         color2=color2,
         update_text_colors=update_text_colors,
         history=history,
-        history_row=history_row
+        history_row=history_row,
+        complementary_color_text=complementary_color_text
     )
     text_elements.extend([color1, color2, mixed_color, mixed_rgb])
 
