@@ -42,3 +42,23 @@ class MixedRGBText(ft.Text):
         )
     def update_color(self, color) -> None:
         self.spans[0].style = ft.TextStyle(color=color)
+
+class ColorDisplayColumn(ft.Container):
+    """A visual grouping for the main color display area."""
+    def __init__(self, complementary_color_text, mixed_color, mixed_rgb, swatch_row, **kwargs):
+        # Remove alignment from kwargs if present to avoid double assignment
+        alignment = kwargs.pop('alignment', None)
+        super().__init__(
+            content=ft.Column(
+                controls=[
+                    complementary_color_text,
+                    mixed_color,
+                    mixed_rgb,
+                    swatch_row,
+                ],
+                alignment=ft.MainAxisAlignment.END,
+                horizontal_alignment=ft.CrossAxisAlignment.START,
+            ),
+            alignment=alignment,
+            **kwargs
+        )

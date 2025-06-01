@@ -124,3 +124,12 @@ class ColorSwatch(ft.Container):
         )
     def _handle_click(self, e: ft.ControlEvent) -> None:
         self.change_bg({"hex": self.color, "colors": self.palette})
+
+class SwatchRowContainer(ft.Container):
+    """A container for SwatchRow, for flexible layout and styling."""
+    def __init__(self, **kwargs: Any):
+        self.swatch_row = SwatchRow()
+        super().__init__(
+            content=self.swatch_row,
+            **kwargs,
+        )

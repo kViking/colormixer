@@ -3,11 +3,12 @@ import random
 import json
 import os
 from typing import Optional, List, Dict, Any
-from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, SwatchRow, HistoryRow, ComplementaryColorText
+from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, SwatchRow, SwatchRowContainer, HistoryRow, ComplementaryColorText, ColorDisplayColumn
 from color_utils import normalize, hexmixer, find_closest_swatch, get_complementary_color, HexToRgb
 from state import add_to_history
 import hotkeys
 from config import CONFIG
+from utils.session import set_current_state, get_current_state
 
 # --- Load Config ---
 config = CONFIG
@@ -125,26 +126,28 @@ def main(page: ft.Page) -> None:
                 new_color = hexmixer(c1, c2)
                 pair = (c1, c2)
             else:
-                # If color is a dict (from history or swatch), extract hex and pair
                 if isinstance(color, dict):
                     new_color = color.get("hex", "")
                     pair = color.get("pair", None)
-                    # If pair exists, populate text fields
                     if pair:
                         color1.value, color2.value = pair
                 else:
                     new_color = normalize(color)
                     page.update()
-                    # DO NOT early return here
-
+            complementary = get_complementary_color(new_color)
+            palette = None
+            palette_colors = None
+            if isinstance(color, dict) and "colors" in color and color["colors"]:
+                palette = True
+                palette_colors = color["colors"]
+            set_current_state(page, new_color, complementary, palette, palette_colors)
             page.bgcolor = new_color
             mixed_color.spans[0].text = new_color
             mixed_rgb.spans[0].text = HexToRgb(new_color).string
-            if isinstance(color, dict) and "colors" in color and color["colors"]:
-                update_text_colors(color["colors"])
+            if palette:
+                update_text_colors(palette_colors)
             else:
                 update_text_colors(new_color)
-            # Only add to history if not already present
             add_to_history(page, history, new_color, pair if not color and c1 and c2 else None)
             history_row.update_history(history)
             page.update()
@@ -159,7 +162,8 @@ def main(page: ft.Page) -> None:
     # --- UI Components (stateless) ---
     color1 = ColorInput(border_color=get_complementary_color(initial_bg), on_change=lambda e: change_bg(), on_submit=lambda e: change_bg())
     color2 = ColorInput(border_color=get_complementary_color(initial_bg), on_change=lambda e: change_bg(), on_submit=lambda e: change_bg())
-    input_row = InputRow(color1, color2)
+    color1.set_page(page)
+    color2.set_page(page)
 
     mixed_color = MixedColorText(initial_bg, on_click=text_click)
     mixed_rgb = MixedRGBText(initial_bg, on_click=text_click)
@@ -169,10 +173,19 @@ def main(page: ft.Page) -> None:
     )
 
     # --- UI Components (stateful) ---
-    swatch_row = SwatchRow()
+    input_row = InputRow(color1, color2, alignment=ft.alignment.center)
+    swatch_row_container = SwatchRowContainer()
+    swatch_row = swatch_row_container.swatch_row
     history_row = HistoryRow(
         history=history,
         change_bg=change_bg
+    )
+    display_text = ColorDisplayColumn(
+        complementary_color_text=complementary_color_text,
+        mixed_color=mixed_color,
+        mixed_rgb=mixed_rgb,
+        swatch_row=swatch_row,
+        alignment=ft.alignment.bottom_right,
     )
 
     # --- Random FAB ---
@@ -189,28 +202,14 @@ def main(page: ft.Page) -> None:
     text_elements.extend([color1, color2, mixed_color, mixed_rgb])
 
     # --- Layout ---
-    class DisplayArea(ft.Column):
+    class DisplayArea(ft.Stack):
         def __init__(self, *args, **kwargs) -> None:
             super().__init__(*args, **kwargs)
             self.expand = True
-            self.alignment = ft.MainAxisAlignment.SPACE_BETWEEN
             self.controls = [
+                display_text,
+                ft.Container(content=input_row, alignment=ft.alignment.center),
                 history_row,
-                ft.Container(content=input_row, expand=True, alignment=ft.alignment.center),
-                ft.Container(
-                    content=ft.Column(
-                        controls=[
-                            complementary_color_text,
-                            mixed_color, 
-                            mixed_rgb,
-                            swatch_row, 
-                        ],
-                        alignment=ft.MainAxisAlignment.END,
-                        horizontal_alignment=ft.CrossAxisAlignment.START,
-                        # expand=True,
-                    ),
-                    alignment=ft.alignment.bottom_left,
-                )
             ]
 
     page.add(ft.SafeArea(content=DisplayArea(expand=True), expand=True))
@@ -223,6 +222,7 @@ def main(page: ft.Page) -> None:
     )
     history_row.update_history(history)
     update_text_colors(initial_bg)
+
     page.update()
 
 if __name__ == "__main__":

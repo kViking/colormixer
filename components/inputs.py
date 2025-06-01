@@ -1,5 +1,6 @@
 import flet as ft
 from typing import Callable, Any
+from color_utils import get_complementary_color
 
 class ColorInput(ft.TextField):
     """Create a text input field for color values."""
@@ -13,6 +14,9 @@ class ColorInput(ft.TextField):
             **kwargs,
         )
 
+    def set_page(self, page):
+        self.page = page
+
     def update_color(self, color: str) -> None:
         self.color = color
     def update_bg_color(self, color: str) -> None:
@@ -22,13 +26,16 @@ class ColorInput(ft.TextField):
     def update_border_color(self, color: str) -> None:
         self.border_color = color
 
-class InputRow(ft.Row):
-    """Create a row containing the two color input fields."""
+class InputRow(ft.Container):
+    """A container for the two color input fields, alignment handled at the container level."""
     def __init__(self, color1: ColorInput, color2: ColorInput, **kwargs: Any):
         super().__init__(
-            controls=[color1, color2],
-            alignment=ft.MainAxisAlignment.CENTER,
             expand=True,
-            wrap=True,
+            alignment=kwargs.pop('alignment', None),
+            content=ft.Row(
+                controls=[color1, color2],
+                expand=True,
+                wrap=True,
+            ),
             **kwargs,
         )
