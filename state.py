@@ -15,3 +15,15 @@ def add_to_history(page: Page, history: List[Dict[str, Any]], new_color: str, pa
 def clear_fields(color1, color2):
     color1.value = ""
     color2.value = ""
+
+def set_current_state(page, bgcolor, complementary, palette=None, palette_colors=None):
+    page.session.set('current', {
+        'bgcolor': bgcolor,
+        'complementary': complementary,
+        'palette': palette,
+        'palette_colors': palette_colors or []
+    })
+
+def get_current_state(page):
+    val = page.session.get('current')
+    return val if val is not None else {}

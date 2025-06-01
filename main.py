@@ -3,12 +3,11 @@ import random
 import json
 import os
 from typing import Optional, List, Dict, Any
-from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, SwatchRow, SwatchRowContainer, HistoryRow, ComplementaryColorText, ColorDisplayColumn
+from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, CombinationRow, CombinationRowContainer, HistoryRow, ComplementaryColorText, ColorDisplayColumn
 from color_utils import normalize, hexmixer, find_closest_swatch, get_complementary_color, HexToRgb
-from state import add_to_history
+from state import add_to_history, set_current_state, get_current_state
 import hotkeys
 from config import CONFIG
-from utils.session import set_current_state, get_current_state
 
 # --- Load Config ---
 config = CONFIG
@@ -47,42 +46,48 @@ def main(page: ft.Page) -> None:
             bgcolor=get_complementary_color(page.bgcolor),
         ))
 
-    def build_swatch_row(color: Optional[str] = None) -> None:
-        """Update the swatch row based on the current or given color."""
+    def build_combination_row(color: Optional[str] = None) -> None:
+        """Update the combination row based on the current or given color."""
         match = find_closest_swatch(color or page.bgcolor, swatches)
         if match is not None:
-            swatch_row.update_swatch_row(
+            combination_row.update_combination_row(
                 match,
                 page,
-                lambda c, m: swatch_row.make_bottom_sheet(c, m, swatches, change_bg, text_click),
+                lambda c, m: combination_row.make_bottom_sheet(c, m, swatches, change_bg, text_click),
             )
         else:
-            swatch_row.update_swatch_row(
+            combination_row.update_combination_row(
                 {'hex': '#000000', 'name': None, 'combinations': []},
                 page,
-                lambda c, m: swatch_row.make_bottom_sheet(c, m, swatches, change_bg, text_click),
+                lambda c, m: combination_row.make_bottom_sheet(c, m, swatches, change_bg, text_click),
             )
 
-    def update_text_colors(color_info: Optional[Any] = None) -> None:
+    def update_text_colors(color_info: Optional[Any] = None, palette: Optional[int] = None, palette_colors: Optional[list] = None) -> None:
         # Accepts either a list of colors or a single bg_color string
         if isinstance(color_info, list):
-            palette = [c for c in color_info if c != page.bgcolor] or color_info
+            palette_colors = color_info
+            palette_list = [c for c in palette_colors if c != page.bgcolor] or palette_colors
             for element in text_elements:
                 if hasattr(element, 'update_color'):
-                    element.update_color(random.choice(palette))
+                    element.update_color(random.choice(palette_list))
                 else:
-                    element.color = random.choice(palette)
+                    element.color = random.choice(palette_list)
             for field in [color1, color2]:
-                field.update_bg_color(random.choice(palette))
-                field.update_focused_border_color(random.choice(palette))
-                field.update_color(get_complementary_color(field.value) if normalize(field.value) != 'INVALID' else random.choice(palette))
-            random_fab.update_color(random.choice(palette))
-            complementary_color_text.update_color(random.choice(palette))
-            build_swatch_row(page.bgcolor)
-            swatch_row_color = random.choice(palette)
-            for combo in swatch_row.controls:
+                field.update_bg_color(random.choice(palette_list))
+                field.update_focused_border_color(random.choice(palette_list))
+                field.update_color(get_complementary_color(field.value) if normalize(field.value) != 'INVALID' else random.choice(palette_list))
+            random_fab.update_color(random.choice(palette_list))
+            complementary_color_text.update_color(random.choice(palette_list))
+            build_combination_row(page.bgcolor)
+            combination_row_color = random.choice(palette_list)
+            for combo in combination_row.controls:
                 if isinstance(combo, ft.Text) and combo.spans:
-                    combo.spans[0].style = ft.TextStyle(color=swatch_row_color)
+                    combo.spans[0].style = ft.TextStyle(color=combination_row_color) if combo.spans[0].text != palette else ft.TextStyle(
+                        bgcolor=combination_row_color, 
+                        color=page.bgcolor
+                    )
+            # Store palette and palette_colors in session state
+            set_current_state(page, page.bgcolor, get_complementary_color(page.bgcolor), palette, palette_colors)
         elif isinstance(color_info, str):
             complementary = get_complementary_color(color_info)
             for element in text_elements:
@@ -97,10 +102,20 @@ def main(page: ft.Page) -> None:
                 field.update_color(get_complementary_color(field.value) if normalize(field.value) != 'INVALID' else complementary)
             random_fab.update_color(complementary)
             complementary_color_text.update_color(complementary)
-            build_swatch_row(color_info)
+            build_combination_row(color_info)
+            # Store only color, not palette
+            set_current_state(page, color_info, complementary, None, None)
+            if palette is not None and palette_colors is not None:
+                # Update the combination row with the palette colors
+                for combo in combination_row.controls:
+                    if isinstance(combo, ft.Text) and combo.spans and combo.spans[0].text == palette:
+                        combo.spans[0].style = ft.TextStyle(
+                            bgcolor=get_complementary_color(page.bgcolor), 
+                            color=page.bgcolor
+                        )
         page.update()
 
-    def change_bg(color: Optional[Any] = None, clear_fields: bool = False) -> None:
+    def change_bg(color: Optional[Any] = None, clear_fields: bool = False, palette: Optional[int] = None, palette_colors: Optional[list] = None) -> None:
         """Change the background color and update history and UI as needed."""
         if not color:
             for field in [color1, color2]:
@@ -131,21 +146,19 @@ def main(page: ft.Page) -> None:
                     pair = color.get("pair", None)
                     if pair:
                         color1.value, color2.value = pair
+                    # Accept palette and palette_colors from dict if present
+                    palette = color.get("palette", palette)
+                    palette_colors = color.get("palette_colors", color.get("colors", palette_colors))
                 else:
                     new_color = normalize(color)
                     page.update()
             complementary = get_complementary_color(new_color)
-            palette = None
-            palette_colors = None
-            if isinstance(color, dict) and "colors" in color and color["colors"]:
-                palette = True
-                palette_colors = color["colors"]
             set_current_state(page, new_color, complementary, palette, palette_colors)
             page.bgcolor = new_color
             mixed_color.spans[0].text = new_color
             mixed_rgb.spans[0].text = HexToRgb(new_color).string
-            if palette:
-                update_text_colors(palette_colors)
+            if palette and palette_colors:
+                update_text_colors(palette_colors, palette, palette_colors)
             else:
                 update_text_colors(new_color)
             add_to_history(page, history, new_color, pair if not color and c1 and c2 else None)
@@ -174,8 +187,13 @@ def main(page: ft.Page) -> None:
 
     # --- UI Components (stateful) ---
     input_row = InputRow(color1, color2, alignment=ft.alignment.center)
-    swatch_row_container = SwatchRowContainer()
-    swatch_row = swatch_row_container.swatch_row
+    input_row_container = ft.Container(
+        content=input_row,
+        alignment=ft.alignment.center,
+        border_radius=ft.BorderRadius(0, 0, 0, 0)
+    )
+    combination_row_container = CombinationRowContainer()
+    combination_row = combination_row_container.combination_row
     history_row = HistoryRow(
         history=history,
         change_bg=change_bg
@@ -184,7 +202,7 @@ def main(page: ft.Page) -> None:
         complementary_color_text=complementary_color_text,
         mixed_color=mixed_color,
         mixed_rgb=mixed_rgb,
-        swatch_row=swatch_row,
+        combination_row=combination_row,  # Use standardized argument name
         alignment=ft.alignment.bottom_right,
     )
 
@@ -202,18 +220,17 @@ def main(page: ft.Page) -> None:
     text_elements.extend([color1, color2, mixed_color, mixed_rgb])
 
     # --- Layout ---
-    class DisplayArea(ft.Stack):
+    class DisplayArea(ft.Column):
         def __init__(self, *args, **kwargs) -> None:
             super().__init__(*args, **kwargs)
-            self.expand = True
+            self.alignment = ft.MainAxisAlignment.SPACE_BETWEEN
             self.controls = [
-                display_text,
-                ft.Container(content=input_row, alignment=ft.alignment.center),
                 history_row,
+                input_row_container,
+                display_text,
             ]
 
-    page.add(ft.SafeArea(content=DisplayArea(expand=True), expand=True))
-    page.floating_action_button = random_fab
+    page.add(ft.SafeArea(content=DisplayArea(), expand=True))
     history.append(
         {
             "hex": initial_bg,
@@ -221,7 +238,9 @@ def main(page: ft.Page) -> None:
         }
     )
     history_row.update_history(history)
-    update_text_colors(initial_bg)
+    update_text_colors(initial_bg)    
+
+    page.floating_action_button = random_fab
 
     page.update()
 

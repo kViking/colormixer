@@ -45,7 +45,7 @@ class MixedRGBText(ft.Text):
 
 class ColorDisplayColumn(ft.Container):
     """A visual grouping for the main color display area."""
-    def __init__(self, complementary_color_text, mixed_color, mixed_rgb, swatch_row, **kwargs):
+    def __init__(self, complementary_color_text, mixed_color, mixed_rgb, combination_row, **kwargs):
         # Remove alignment from kwargs if present to avoid double assignment
         alignment = kwargs.pop('alignment', None)
         super().__init__(
@@ -54,7 +54,7 @@ class ColorDisplayColumn(ft.Container):
                     complementary_color_text,
                     mixed_color,
                     mixed_rgb,
-                    swatch_row,
+                    combination_row,
                 ],
                 alignment=ft.MainAxisAlignment.END,
                 horizontal_alignment=ft.CrossAxisAlignment.START,

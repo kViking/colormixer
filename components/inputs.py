@@ -30,11 +30,9 @@ class InputRow(ft.Container):
     """A container for the two color input fields, alignment handled at the container level."""
     def __init__(self, color1: ColorInput, color2: ColorInput, **kwargs: Any):
         super().__init__(
-            expand=True,
             alignment=kwargs.pop('alignment', None),
             content=ft.Row(
                 controls=[color1, color2],
-                expand=True,
                 wrap=True,
             ),
             **kwargs,

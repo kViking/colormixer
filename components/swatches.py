@@ -2,36 +2,50 @@ import flet as ft
 from typing import Callable, List, Dict, Any, Optional
 from color_utils import get_complementary_color, CloseSwatch
 
-class SwatchRow(ft.Row):
-    """Display color swatch combinations and handle swatch selection."""
+class CombinationRow(ft.Row):
+    """Display color combination swatches and handle combination selection."""
     def __init__(self, **kwargs: Any):
         super().__init__(
             alignment=ft.MainAxisAlignment.START,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
             controls=[],
             **kwargs,
         )
         self.height = 18
-        self.vertical_alignment = ft.CrossAxisAlignment.CENTER
         self._page: Optional[ft.Page] = None
         self._make_bottom_sheet: Optional[Callable] = None
         self._match: Optional[CloseSwatch] = None
 
-    def update_swatch_row(self, match: CloseSwatch, page: ft.Page, make_bottom_sheet: Callable, route: Optional[str] = None) -> None:
+    def update_combination_row(self, match: CloseSwatch, page: ft.Page, make_bottom_sheet: Callable, route: Optional[str] = None) -> None:
         self.controls.clear()
         self._page = page
         self._make_bottom_sheet = make_bottom_sheet
         self._match = match
         self._route = route
-        bgcolor = page.bgcolor if isinstance(page.bgcolor, str) and page.bgcolor else "#000000"
+        bgcolor = getattr(page, "bgcolor", None)
+        current_state = page.session.get('current')
+        if isinstance(current_state, dict):
+            if not (isinstance(bgcolor, str) and bgcolor):
+                bgcolor = current_state.get('bgcolor')
+            palette = current_state.get('palette_colors')
+            if current_state.get('palette'):
+                current_combo = current_state.get('palette')
+        if not (isinstance(bgcolor, str) and bgcolor):
+            raise ValueError("No valid background color in UI or session state.")
         combinations = match.get('combinations') or []
         for combo in combinations:
+            # Only set the default style, do not attempt to highlight or select here
+            style = ft.TextStyle(
+                color=get_complementary_color(bgcolor),
+                bgcolor=None,
+            )
             self.controls.append(
                 ft.Text(
                     theme_style=ft.TextThemeStyle.BODY_LARGE,
                     spans=[
                         ft.TextSpan(
                             combo,
-                            style=ft.TextStyle(color=get_complementary_color(bgcolor)),
+                            style=style,
                             on_click=self._handle_combo_click,
                         )
                     ],
@@ -52,11 +66,11 @@ class SwatchRow(ft.Row):
         change_bg: Callable[[Dict[str, str]], None],
         text_click: Callable[[ft.ControlEvent], None],
     ) -> ft.BottomSheet:
-        combo_row = ft.Row(expand=True, alignment=ft.MainAxisAlignment.CENTER, spacing=0)
+        combo_row = ft.Row(alignment=ft.MainAxisAlignment.CENTER, spacing=0, expand=True)
         sheet = ft.BottomSheet(
             ft.Column(
-                alignment=ft.MainAxisAlignment.START,
-                horizontal_alignment=ft.CrossAxisAlignment.START,
+                expand=True,
+                alignment=ft.MainAxisAlignment.CENTER,
                 controls=[
                     combo_row,
                     ft.Text(
@@ -64,7 +78,6 @@ class SwatchRow(ft.Row):
                         style=ft.TextStyle(color=get_complementary_color(match['hex'])),
                     ),
                 ],
-                expand=True,
             ),
             bgcolor=match['hex'],
         )
@@ -80,56 +93,57 @@ class SwatchRow(ft.Row):
                         change_bg=change_bg,
                         palette=palette,
                         on_click=text_click,
+                        combination=combination,
                     )
                 )
         return sheet
 
 class ColorSwatch(ft.Container):
     """Change the background color and palette when clicked."""
-    def __init__(self, color: str, name: str, change_bg: Callable[[Dict[str, Any]], None], on_click: Callable, palette: List[str], **kwargs: Any):
+    def __init__(self, color: str, name: str, change_bg: Callable[[Dict[str, Any]], None], on_click: Callable, palette: List[str], combination: str, **kwargs: Any):
         super().__init__(
             bgcolor=color,
-            expand=True,
             alignment=ft.alignment.center,
             **kwargs,
         )
         self.palette = palette
+        self.combination = combination
         self.color = color
         self.name = name
+        self.expand = kwargs.pop('expand', True)
         self.change_bg = change_bg
         self.on_click = self._handle_click
-        self.alignment = ft.alignment.top_left
         self.content = ft.Column(
             horizontal_alignment=ft.CrossAxisAlignment.START,
-            expand=True,
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             controls=[
-            ft.Text(
-                theme_style=ft.TextThemeStyle.BODY_LARGE,
-                text_align=ft.TextAlign.RIGHT,
-                expand=True,
-                spans=[
-                ft.TextSpan(
-                    color,
-                    style=ft.TextStyle(color=get_complementary_color(color)),
-                    on_click=on_click
-                )
-                ],
-            ),
-            ft.Text(
-                name,
-                color=get_complementary_color(color),
-                theme_style=ft.TextThemeStyle.BODY_LARGE,
-            ),
+                ft.Text(
+                    theme_style=ft.TextThemeStyle.BODY_LARGE,
+                    text_align=ft.TextAlign.RIGHT,
+                    spans=[
+                        ft.TextSpan(
+                            color,
+                            style=ft.TextStyle(color=get_complementary_color(color)),
+                            on_click=on_click
+                        )
+                    ],
+                ),
+                ft.Text(
+                    name,
+                    color=get_complementary_color(color),
+                    theme_style=ft.TextThemeStyle.BODY_LARGE,
+                ),
             ],
         )
     def _handle_click(self, e: ft.ControlEvent) -> None:
-        self.change_bg({"hex": self.color, "colors": self.palette})
+        # Pass the combination number and palette colors
+        self.change_bg({"hex": self.color, "palette": self.combination, "palette_colors": self.palette})
 
-class SwatchRowContainer(ft.Container):
-    """A container for SwatchRow, for flexible layout and styling."""
+class CombinationRowContainer(ft.Container):
+    """A container for CombinationRow, for flexible layout and styling."""
     def __init__(self, **kwargs: Any):
-        self.swatch_row = SwatchRow()
+        self.combination_row = CombinationRow()
         super().__init__(
-            content=self.swatch_row,
+            content=self.combination_row,
             **kwargs,
         )
