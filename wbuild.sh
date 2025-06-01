@@ -7,6 +7,8 @@
 #   ./wbuild.sh 1.2.3          # Use 1.2.3 as the version
 #   ./wbuild.sh --version 1.2.3 # Use 1.2.3 as the version
 #   ./wbuild.sh --nobuild      # Skip Flet build, only compile installer
+#   ./wbuild.sh --nobuild 1.2.3 # Skip build, use 1.2.3 as the version
+#   ./wbuild.sh 1.2.3 --nobuild # Use 1.2.3 as the version, skip build
 #   ./wbuild.sh -h | --help     # Show this help message
 #
 # This script will:
@@ -21,6 +23,7 @@
 
 version=""
 nobuild=0
+pending_version=""
 
 # Parse arguments for --version, --nobuild, or a single positional version argument
 for ((i=1; i<=$#; i++)); do
@@ -31,6 +34,8 @@ for ((i=1; i<=$#; i++)); do
         echo -e "  \033[1;32m./wbuild.sh 1.2.3\033[0m          # Use 1.2.3 as the version"
         echo -e "  \033[1;32m./wbuild.sh --version 1.2.3\033[0m # Use 1.2.3 as the version"
         echo -e "  \033[1;32m./wbuild.sh --nobuild\033[0m      # Skip Flet build, only compile installer"
+        echo -e "  \033[1;32m./wbuild.sh --nobuild 1.2.3\033[0m # Skip build, use 1.2.3 as the version"
+        echo -e "  \033[1;32m./wbuild.sh 1.2.3 --nobuild\033[0m # Use 1.2.3 as the version, skip build"
         echo -e "  \033[1;32m./wbuild.sh -h | --help\033[0m     # Show this help message"
         echo -e "\n\033[1;36mOptions:\033[0m"
         echo -e "  \033[1;33m-h, --help\033[0m      Show this help message and exit."
@@ -59,11 +64,18 @@ for ((i=1; i<=$#; i++)); do
             echo -e "\033[1;31mError: --version requires a version string\033[0m"
             exit 1
         fi
-    elif [[ -z "$version" && $i -eq 1 && "$#" -eq 1 && ! "$arg" =~ ^- ]]; then
-        # Accept a single positional argument as the version string if no flag is given
-        version="$arg"
+        continue
+    fi
+    # Accept a positional argument as the version string if no flag is given
+    if [[ -z "$pending_version" && ! "$arg" =~ ^- ]]; then
+        pending_version="$arg"
     fi
 done
+
+# If version wasn't set by --version, use the positional argument if present
+if [[ -z "$version" && -n "$pending_version" ]]; then
+    version="$pending_version"
+fi
 
 # Get current version from highest ColorMixerInstaller-*.exe filename
 if [[ -z "$version" ]]; then
@@ -75,16 +87,20 @@ if [[ -z "$version" ]]; then
             minor="${BASH_REMATCH[2]}"
             patch="${BASH_REMATCH[3]}"
             new_version="$major.$minor.$((patch + 1))"
-            echo -e "\033[1;32mVersion bumped: $current_version -> $new_version\033[0m"
             version="$new_version"
+            echo -e "\033[1;32mVersion bumped: $current_version -> $new_version\033[0m"
+            echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
         else
             echo -e "\033[1;31mCould not parse current version from installer filename.\033[0m"
             exit 1
         fi
     else
-        echo -e "\033[1;33mNo existing installer found. Defaulting to 0.1.0.\033[0m"
         version="0.1.0"
+        echo -e "\033[1;33mNo existing installer found. Defaulting to 0.1.0.\033[0m"
+        echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
     fi
+elif [[ "$version" == "$new_version" ]]; then
+    # Only print auto-bump messages if we actually auto-bumped
     echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
 else
     echo -e "\033[1;32mUsing provided version: $version\033[0m"
