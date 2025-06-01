@@ -10,10 +10,15 @@ class DummyPage:
         self.title = None
         self.vertical_alignment = None
         self.bgcolor = '#123456'
-        self.session = {}
         self.controls = []
         self.floating_action_button = None
         self.events = []
+        class SessionDict(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+            def set(self, key, value):
+                self[key] = value
+        self.session = SessionDict()  # Provide get/set methods for compatibility
     def add(self, control):
         self.controls.append(control)
     def open(self, dialog):

@@ -38,3 +38,19 @@ def test_complementary_color_text():
         cct.update_color('#654321')
     except Exception:
         pytest.fail('update_color raised')
+
+def test_color_display_column():
+    from components.display import MixedColorText, MixedRGBText, ComplementaryColorText, ColorDisplayColumn
+    mct = MixedColorText('#123456', on_click=lambda e: None)
+    mrt = MixedRGBText('#123456', on_click=lambda e: None)
+    cct = ComplementaryColorText('#654321', on_click=lambda e: None)
+    class DummyRow:
+        pass
+    col = ColorDisplayColumn(
+        complementary_color_text=cct,
+        mixed_color=mct,
+        mixed_rgb=mrt,
+        combination_row=DummyRow(),
+        alignment=None,
+    )
+    assert hasattr(col, 'content')

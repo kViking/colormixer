@@ -3,7 +3,11 @@ import random
 import json
 import os
 from typing import Optional, List, Dict, Any
-from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, CombinationRow, CombinationRowContainer, HistoryRow, ComplementaryColorText, ColorDisplayColumn
+from components.display import MixedColorText, MixedRGBText, ComplementaryColorText, ColorDisplayColumn
+from components.fab import RandomFAB
+from components.inputs import ColorInput, InputRow
+from components.swatches import CombinationRow, CombinationRowContainer
+from components.history import HistoryRow
 from color_utils import normalize, hexmixer, find_closest_swatch, get_complementary_color, HexToRgb
 from state import add_to_history, set_current_state, get_current_state
 import hotkeys

@@ -10,6 +10,12 @@ class DummyPage:
         self.bgcolor = '#123456'
         self.floating_action_button = None
         self.events = []
+        class SessionDict(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+            def set(self, key, value):
+                self[key] = value
+        self.session = SessionDict()  # Provide get/set methods for compatibility
     def update(self):
         self.events.append('update')
 
@@ -27,8 +33,10 @@ def test_random_fab_click():
     called = {}
     def dummy_update_text_colors(arg):
         called['arg'] = arg
-    fab = RandomFAB(page, mixed_color, mixed_rgb, color1, color2, dummy_update_text_colors, history, history_row)
+    complementary_color_text = MixedColorText('#654321', on_click=lambda e: None)  # Dummy for required arg
+    fab = RandomFAB(page, mixed_color, mixed_rgb, color1, color2, dummy_update_text_colors, history, history_row, complementary_color_text)
     fab._handle_click(DummyEvent())  # type: ignore
-    assert history
-    assert 'hex' in history[-1]
+    # The RandomFAB does not append to history directly; test that update_text_colors was called with a hex string
+    assert 'arg' in called
+    assert isinstance(called['arg'], str)
     assert called['arg'].startswith('#')

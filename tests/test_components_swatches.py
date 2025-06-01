@@ -8,6 +8,12 @@ class DummyPage:
         self.bgcolor = '#ffffff'
         self.updated = False
         self.opened = []
+        class SessionDict(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+            def set(self, key, value):
+                self[key] = value
+        self.session = SessionDict()  # Provide get/set methods for compatibility
     def update(self):
         self.updated = True
     def open(self, obj):
