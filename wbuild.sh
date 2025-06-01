@@ -27,6 +27,14 @@ nobuild=0
 nobump=0
 pending_version=""
 
+# Function to display colored notifications
+notify() {
+    local title="CMixer"
+    local message="$1"
+    local priority="$2" # 1-5 low to high
+    ntfy send --title "$title" --message "$message" --priority "$priority" 
+}
+
 # Parse arguments for --version, --nobuild, --nobump, or a single positional version argument
 for ((i=1; i<=$#; i++)); do
     arg="${!i}"
@@ -121,6 +129,7 @@ if [[ $nobuild -eq 0 ]]; then
     flet build windows .;
     if [ $? -ne 0 ]; then
         echo -e "\033[1;31mBuild failed. Please check the output for errors.\033[0m"
+        notify "Flet build failed" 5
         exit 1
     fi
     echo -e "\033[1;32mBuild completed successfully.\033[0m"
@@ -132,6 +141,7 @@ echo -e "\033[1;34mCompiling Inno Setup installer...\033[0m"
 iscc="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
 if [[ -z "$version" ]]; then
     echo -e "\033[1;31mError: version is empty before calling ISCC. Aborting.\033[0m"
+    notify "Error: version is empty before calling ISCC. Aborting." 5
     exit 1
 fi
 export COLORMIXER_VERSION="$version"
@@ -139,10 +149,13 @@ if [ -f "$iscc" ]; then
     "$iscc" inno-colormixer.iss
     if [ $? -ne 0 ]; then
         echo -e "\033[1;31mInno Setup compilation failed. Please check the output for errors.\033[0m"
+        notify "Inno Setup compilation failed" 5
         exit 1
     fi
 else
     echo -e "\033[1;31mInno Setup not found at $iscc. Please install it or update the path.\033[0m"
+    notify "Inno Setup not found at $iscc. Please install it or update the path." 5
     exit 1
 fi
 echo -e "\033[1;32mInno Setup installer compiled successfully.\033[0m"
+notify "Inno Setup installer compiled successfully" 3
