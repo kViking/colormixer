@@ -76,6 +76,7 @@ if [[ -z "$version" ]]; then
         echo "No existing installer found. Defaulting to 0.1.0."
         version="0.1.0"
     fi
+    echo "Using auto-bumped version: $version"
 else
     echo "Using provided version: $version"
 fi
@@ -89,8 +90,12 @@ fi
 echo "Build completed successfully."
 echo "Compiling Inno Setup installer..."
 iscc="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
+if [[ -z "$version" ]]; then
+    echo "Error: version is empty before calling ISCC. Aborting."
+    exit 1
+fi
 if [ -f "$iscc" ]; then
-    "$iscc" /DVersion=$version ./inno-colormixer.iss
+    "$iscc" "/DVersion=$version" "./inno-colormixer.iss"
     if [ $? -ne 0 ]; then
         echo "Inno Setup compilation failed. Please check the output for errors."
         exit 1
