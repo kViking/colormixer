@@ -6,11 +6,12 @@
 #   ./wbuild.sh                # Auto-bump patch version from latest ColorMixerInstaller-*.exe
 #   ./wbuild.sh 1.2.3          # Use 1.2.3 as the version
 #   ./wbuild.sh --version 1.2.3 # Use 1.2.3 as the version
+#   ./wbuild.sh --nobuild      # Skip Flet build, only compile installer
 #   ./wbuild.sh -h | --help     # Show this help message
 #
 # This script will:
 #   - Determine the version to use (from argument, --version, or by bumping the latest installer)
-#   - Build the Flet Windows app
+#   - Build the Flet Windows app (unless --nobuild is given)
 #   - Compile the Inno Setup installer with the correct version
 #
 # Requirements:
@@ -19,27 +20,35 @@
 #   - Run from the project root directory
 
 version=""
+nobuild=0
 
-# Parse arguments for --version or a single positional version argument
+# Parse arguments for --version, --nobuild, or a single positional version argument
 for ((i=1; i<=$#; i++)); do
     arg="${!i}"
     if [[ "$arg" == "-h" || "$arg" == "--help" ]]; then
-        echo "\nUsage:"
-        echo "  ./wbuild.sh                # Auto-bump patch version from latest ColorMixerInstaller-*.exe"
-        echo "  ./wbuild.sh 1.2.3          # Use 1.2.3 as the version"
-        echo "  ./wbuild.sh --version 1.2.3 # Use 1.2.3 as the version"
-        echo "\nOptions:"
-        echo "  -h, --help      Show this help message and exit."
-        echo "  --version VER   Specify version to use."
-        echo "\nThis script will:"
-        echo "  - Determine the version to use (from argument, --version, or by bumping the latest installer)"
-        echo "  - Build the Flet Windows app"
-        echo "  - Compile the Inno Setup installer with the correct version"
-        echo "\nRequirements:"
-        echo "  - Flet CLI installed and in PATH"
-        echo "  - Inno Setup 6 installed at /c/Program Files (x86)/Inno Setup 6/ISCC.exe"
-        echo "  - Run from the project root directory\n"
+        echo -e "\033[1;36m\nUsage:\033[0m"
+        echo -e "  \033[1;32m./wbuild.sh\033[0m                # Auto-bump patch version from latest ColorMixerInstaller-*.exe"
+        echo -e "  \033[1;32m./wbuild.sh 1.2.3\033[0m          # Use 1.2.3 as the version"
+        echo -e "  \033[1;32m./wbuild.sh --version 1.2.3\033[0m # Use 1.2.3 as the version"
+        echo -e "  \033[1;32m./wbuild.sh --nobuild\033[0m      # Skip Flet build, only compile installer"
+        echo -e "  \033[1;32m./wbuild.sh -h | --help\033[0m     # Show this help message"
+        echo -e "\n\033[1;36mOptions:\033[0m"
+        echo -e "  \033[1;33m-h, --help\033[0m      Show this help message and exit."
+        echo -e "  \033[1;33m--version VER\033[0m   Specify version to use."
+        echo -e "  \033[1;33m--nobuild\033[0m       Skip Flet build, only compile installer."
+        echo -e "\n\033[1;36mThis script will:\033[0m"
+        echo -e "  - Determine the version to use (from argument, --version, or by bumping the latest installer)"
+        echo -e "  - Build the Flet Windows app (unless --nobuild is given)"
+        echo -e "  - Compile the Inno Setup installer with the correct version"
+        echo -e "\n\033[1;36mRequirements:\033[0m"
+        echo -e "  - Flet CLI installed and in PATH"
+        echo -e "  - Inno Setup 6 installed at /c/Program Files (x86)/Inno Setup 6/ISCC.exe"
+        echo -e "  - Run from the project root directory\n"
         exit 0
+    fi
+    if [[ "$arg" == "--nobuild" ]]; then
+        nobuild=1
+        continue
     fi
     if [[ "$arg" == "--version" ]]; then
         # Get the next argument as the version string
@@ -47,7 +56,7 @@ for ((i=1; i<=$#; i++)); do
             version="${@:$((i+1)):1}"
             ((i++))
         else
-            echo "Error: --version requires a version string"
+            echo -e "\033[1;31mError: --version requires a version string\033[0m"
             exit 1
         fi
     elif [[ -z "$version" && $i -eq 1 && "$#" -eq 1 && ! "$arg" =~ ^- ]]; then
@@ -66,43 +75,48 @@ if [[ -z "$version" ]]; then
             minor="${BASH_REMATCH[2]}"
             patch="${BASH_REMATCH[3]}"
             new_version="$major.$minor.$((patch + 1))"
-            echo "Version bumped: $current_version -> $new_version"
+            echo -e "\033[1;32mVersion bumped: $current_version -> $new_version\033[0m"
             version="$new_version"
         else
-            echo "Could not parse current version from installer filename."
+            echo -e "\033[1;31mCould not parse current version from installer filename.\033[0m"
             exit 1
         fi
     else
-        echo "No existing installer found. Defaulting to 0.1.0."
+        echo -e "\033[1;33mNo existing installer found. Defaulting to 0.1.0.\033[0m"
         version="0.1.0"
     fi
-    echo "Using auto-bumped version: $version"
+    echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
 else
-    echo "Using provided version: $version"
+    echo -e "\033[1;32mUsing provided version: $version\033[0m"
 fi
 
-flet build windows .;
-if [ $? -ne 0 ]; then
-    echo "Build failed. Please check the output for errors."
-    exit 1
+if [[ $nobuild -eq 0 ]]; then
+    echo -e "\033[1;34mBuilding Flet Windows app...\033[0m"
+    flet build windows .;
+    if [ $? -ne 0 ]; then
+        echo -e "\033[1;31mBuild failed. Please check the output for errors.\033[0m"
+        exit 1
+    fi
+    echo -e "\033[1;32mBuild completed successfully.\033[0m"
+else
+    echo -e "\033[1;33mSkipping Flet build (--nobuild specified).\033[0m"
 fi
 
-echo "Build completed successfully."
-echo "Compiling Inno Setup installer..."
+echo -e "\033[1;34mCompiling Inno Setup installer...\033[0m"
 iscc="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
 if [[ -z "$version" ]]; then
-    echo "Error: version is empty before calling ISCC. Aborting."
+    echo -e "\033[1;31mError: version is empty before calling ISCC. Aborting.\033[0m"
     exit 1
 fi
 export COLORMIXER_VERSION="$version"
 if [ -f "$iscc" ]; then
     "$iscc" inno-colormixer.iss
     if [ $? -ne 0 ]; then
-        echo "Inno Setup compilation failed. Please check the output for errors."
+        echo -e "\033[1;31mInno Setup compilation failed. Please check the output for errors.\033[0m"
         exit 1
     fi
 else
-    echo "Inno Setup not found at $iscc. Please install it or update the path."
+    echo -e "\033[1;31mInno Setup not found at $iscc. Please install it or update the path.\033[0m"
     exit 1
 fi
-echo "Inno Setup installer compiled successfully."
+echo -e "\033[1;32mInno Setup installer compiled successfully.\033[0m"
