@@ -75,17 +75,18 @@ if [[ -z "$version" ]]; then
             minor="${BASH_REMATCH[2]}"
             patch="${BASH_REMATCH[3]}"
             new_version="$major.$minor.$((patch + 1))"
-            echo -e "\033[1;32mVersion bumped: $current_version -> $new_version\033[0m"
             version="$new_version"
+            echo -e "\033[1;32mVersion bumped: $current_version -> $new_version\033[0m"
+            echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
         else
             echo -e "\033[1;31mCould not parse current version from installer filename.\033[0m"
             exit 1
         fi
     else
-        echo -e "\033[1;33mNo existing installer found. Defaulting to 0.1.0.\033[0m"
         version="0.1.0"
+        echo -e "\033[1;33mNo existing installer found. Defaulting to 0.1.0.\033[0m"
+        echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
     fi
-    echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
 else
     echo -e "\033[1;32mUsing provided version: $version\033[0m"
 fi
