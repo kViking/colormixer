@@ -94,8 +94,9 @@ if [[ -z "$version" ]]; then
     echo "Error: version is empty before calling ISCC. Aborting."
     exit 1
 fi
+export COLORMIXER_VERSION="$version"
 if [ -f "$iscc" ]; then
-    "$iscc" "/DVersion=$version" "./inno-colormixer.iss"
+    "$iscc" inno-colormixer.iss
     if [ $? -ne 0 ]; then
         echo "Inno Setup compilation failed. Please check the output for errors."
         exit 1
