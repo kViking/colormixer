@@ -3,15 +3,20 @@ import random
 import json
 import os
 from typing import Optional, List, Dict, Any
+from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, CombinationRow, CombinationRowContainer, HistoryRow, ComplementaryColorText, ColorDisplayColumn
+from core.color_utils import *
+from core.state import add_to_history, set_current_state, get_current_state
+import core.hotkeys
+from core.config import CONFIG
 from components.display import MixedColorText, MixedRGBText, ComplementaryColorText, ColorDisplayColumn
 from components.fab import RandomFAB
 from components.inputs import ColorInput, InputRow
 from components.swatches import CombinationRow, CombinationRowContainer
 from components.history import HistoryRow
-from color_utils import normalize, hexmixer, find_closest_swatch, get_complementary_color, HexToRgb
-from state import add_to_history, set_current_state, get_current_state
-import hotkeys
-from config import CONFIG
+from core.color_utils import normalize, hexmixer, find_closest_swatch, get_complementary_color, HexToRgb
+from core.state import add_to_history, set_current_state, get_current_state
+import core.hotkeys
+from core.config import CONFIG
 
 # --- Load Config ---
 config = CONFIG
@@ -175,7 +180,7 @@ def main(page: ft.Page) -> None:
             return
 
     # --- Hotkeys ---
-    page.on_keyboard_event = hotkeys.make_hotkey_handler(page, change_bg)
+    page.on_keyboard_event = core.hotkeys.make_hotkey_handler(page, change_bg)
 
     # --- UI Components (stateless) ---
     color1 = ColorInput(border_color=get_complementary_color(initial_bg), on_change=lambda e: change_bg(), on_submit=lambda e: change_bg())

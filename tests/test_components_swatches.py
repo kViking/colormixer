@@ -1,6 +1,6 @@
 import pytest
 from components.swatches import CombinationRow, ColorSwatch
-from color_utils import get_complementary_color, CloseSwatch
+from core.color_utils import get_complementary_color, CloseSwatch
 from typing import Any
 
 class DummyPage:

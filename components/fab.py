@@ -1,6 +1,6 @@
 import flet as ft
 from typing import Callable, List, Dict, Any
-from color_utils import get_complementary_color
+from core.color_utils import get_complementary_color
 from .display import MixedColorText, MixedRGBText
 from .inputs import ColorInput
 from .history import HistoryRow
@@ -44,7 +44,6 @@ class RandomFAB(ft.FloatingActionButton):
             self.mixed_color.spans[0].text = new_color
             self.mixed_rgb.spans[0].text = str(tuple(int(new_color[i:i+2], 16) for i in (1, 3, 5)))
             # Update complementary color text
-            from color_utils import get_complementary_color
             complementary = get_complementary_color(new_color)
             self.complementary_color_text.spans[0].text = complementary
         except (AttributeError, IndexError):

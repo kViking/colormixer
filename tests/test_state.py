@@ -1,5 +1,5 @@
 import pytest
-from state import add_to_history
+from core.state import add_to_history
 
 class DummySession:
     def __init__(self):
@@ -14,8 +14,8 @@ class DummyPage:
         self.session = DummySession()
 
 # Patch the type check for testing
-import state
-state.Page = DummyPage
+import core.state
+core.state.Page = DummyPage
 
 def test_add_to_history():
     page = DummyPage()  # type: ignore

@@ -1,4 +1,4 @@
-from color_utils import normalize, HexToRgb, get_complementary_color
+from core.color_utils import normalize, HexToRgb, get_complementary_color
 import flet as ft
 from typing import Any, Callable
 
