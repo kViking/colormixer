@@ -1,5 +1,5 @@
 import pytest
-from color_utils import normalize, hexmixer, get_complementary_color, find_closest_swatch, CloseSwatch
+from core.color_utils import normalize, hexmixer, get_complementary_color, find_closest_swatch, CloseSwatch
 
 @pytest.mark.parametrize("input_color,expected", [
     ("#ffffff", "#ffffff"),

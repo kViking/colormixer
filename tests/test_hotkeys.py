@@ -1,5 +1,5 @@
 import pytest
-from hotkeys import make_hotkey_handler
+from core.hotkeys import make_hotkey_handler
 from typing import Any
 
 class DummyPage:

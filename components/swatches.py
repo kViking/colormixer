@@ -1,6 +1,6 @@
 import flet as ft
 from typing import Callable, List, Dict, Any, Optional
-from color_utils import get_complementary_color, CloseSwatch
+from core.color_utils import get_complementary_color, CloseSwatch
 
 class CombinationRow(ft.Row):
     """Display color combination swatches and handle combination selection."""

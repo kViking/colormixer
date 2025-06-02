@@ -1,6 +1,6 @@
 import flet as ft
 from typing import Callable, Any
-from color_utils import get_complementary_color
+from core.color_utils import get_complementary_color
 
 class ColorInput(ft.TextField):
     """Create a text input field for color values."""

@@ -1,6 +1,6 @@
 import flet as ft
 from typing import List, Dict, Any, Callable
-from color_utils import get_complementary_color
+from core.color_utils import get_complementary_color
 import math
 
 class HistoryRow(ft.Row):
