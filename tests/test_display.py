@@ -1,5 +1,6 @@
 import pytest
 from components.display import MixedColorText, MixedRGBText, ComplementaryColorText
+from core.color_utils import get_complementary_color
 from typing import Any
 
 class DummyStyle:

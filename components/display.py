@@ -1,6 +1,6 @@
 import flet as ft
 from typing import Callable, Any
-from color_utils import get_complementary_color, HexToRgb
+from core.color_utils import get_complementary_color, HexToRgb
 
 class MixedColorText(ft.Text):
     """Display the mixed color hex value, clickable for copy."""
