@@ -32,7 +32,8 @@ def main(page: ft.Page) -> None:
     page.fonts = {
         config['font_family']: config['font_path'],
     }
-    page.theme = ft.Theme(font_family=config.get('theme', {}).get('font_family', 'VCR_OSD_MONO'))
+    page.theme = ft.Theme()
+    page.theme.font_family = config.get('theme', {}).get('font_family', 'VCR_OSD_MONO')
     page.title = "Color Mixer"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     initial_bg = "#{:06x}".format(random.randint(0, 0xFFFFFF))
@@ -71,7 +72,7 @@ def main(page: ft.Page) -> None:
                 lambda c, m: combination_row.make_bottom_sheet(c, m, swatches, change_bg, text_click),
             )
 
-    def update_text_colors(color_info: Optional[Any] = None, palette: Optional[int] = None, palette_colors: Optional[list] = None) -> None:
+    def _update_text_colors(color_info: Optional[Any] = None, palette: Optional[int] = None, palette_colors: Optional[list] = None) -> None:
         # Accepts either a list of colors or a single bg_color string
         if isinstance(color_info, list):
             palette_colors = color_info
@@ -130,8 +131,7 @@ def main(page: ft.Page) -> None:
             for field in [color1, color2]:
                 norm = normalize(field.value)
                 if norm == 'INVALID':
-                    field.bgcolor = page.bgcolor
-                    page.update()
+                    pass
                 else:
                     field.bgcolor = norm
                     field.color = get_complementary_color(field.bgcolor)
@@ -164,13 +164,16 @@ def main(page: ft.Page) -> None:
             complementary = get_complementary_color(new_color)
             set_current_state(page, new_color, complementary, palette, palette_colors)
             page.bgcolor = new_color
-            mixed_color.spans[0].text = new_color
-            mixed_rgb.spans[0].text = HexToRgb(new_color).string
-            complementary_color_text.spans[0].text = complementary
+            mixed_color.update_text(new_color)
+            mixed_color.update_color(complementary)
+            mixed_rgb.update_text(HexToRgb(new_color).string)
+            mixed_rgb.update_color(complementary)
+            complementary_color_text.update_text(complementary)
+            complementary_color_text.update_color(complementary)
             if palette and palette_colors:
-                update_text_colors(palette_colors, palette, palette_colors)
+                _update_text_colors(palette_colors, palette, palette_colors)
             else:
-                update_text_colors(new_color)
+                _update_text_colors(new_color)
             add_to_history(page, history, new_color, pair if not color and c1 and c2 else None)
             history_row.update_history(history)
             page.update()
@@ -219,14 +222,9 @@ def main(page: ft.Page) -> None:
     # --- Random FAB ---
     random_fab = RandomFAB(
         page=page,
-        mixed_color=mixed_color,
-        mixed_rgb=mixed_rgb,
-        color1=color1,
-        color2=color2,
-        update_text_colors=update_text_colors,
+        update_text_colors=change_bg,  # Pass change_bg as the callback
         history=history,
         history_row=history_row,
-        complementary_color_text=complementary_color_text
     )
     text_elements.extend([color1, color2, mixed_color, mixed_rgb])
 
@@ -249,7 +247,7 @@ def main(page: ft.Page) -> None:
         }
     )
     history_row.update_history(history)
-    update_text_colors(initial_bg)    
+    _update_text_colors(initial_bg)    
 
     page.floating_action_button = random_fab
 
