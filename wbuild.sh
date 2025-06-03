@@ -59,7 +59,7 @@ notify() {
         echo -e "\033[1;31mError: notify function requires --message argument\033[0m"
         return 1
     fi
-    ntfy send --title="$title" --priority="$priority" --tags "$tags" dwight-homelab-shout --message="$message"
+    ntfy send --title="$title" --priority="$priority" --tags "$tags" dwight-homelab-shout $message
 }
 
 # Allow direct CLI usage: ./wbuild.sh --notify "message" [priority]
