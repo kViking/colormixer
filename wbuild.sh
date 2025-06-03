@@ -32,7 +32,7 @@ notify() {
     local title="CMixer"
     local message="$1"
     local priority="$2" # 1-5 low to high
-    ntfy send --title "$title" --message "$message" --priority "$priority" 
+    ntfy send ntfy.sh/dwight-homelab-shout --title "$title" --message "$message" --priority "$priority" 
 }
 
 # Parse arguments for --version, --nobuild, --nobump, or a single positional version argument
