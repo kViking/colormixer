@@ -5,16 +5,17 @@ import os
 from typing import Optional, List, Dict, Any
 from components import ColorInput, MixedColorText, MixedRGBText, RandomFAB, InputRow, CombinationRow, CombinationRowContainer, HistoryRow, ComplementaryColorText, ColorDisplayColumn
 from core.color_utils import *
-from core.state import add_to_history, set_current_state, get_current_state
+from core.state import add_to_history, set_current_state, get_current_state, get_palette
 import core.hotkeys
 from core.config import CONFIG
 from components.display import MixedColorText, MixedRGBText, ComplementaryColorText, ColorDisplayColumn
 from components.fab import RandomFAB
 from components.inputs import ColorInput, InputRow
 from components.swatches import CombinationRow, CombinationRowContainer
+from components.user_palette import UserPalette
 from components.history import HistoryRow
 from core.color_utils import normalize, hexmixer, find_closest_swatch, get_complementary_color, HexToRgb
-from core.state import add_to_history, set_current_state, get_current_state
+from core.state import add_to_history, set_current_state, get_current_state, get_palette
 import core.hotkeys
 from core.config import CONFIG
 
@@ -43,6 +44,9 @@ def main(page: ft.Page) -> None:
     # Use session-based history if available
     history: List[Dict[str, Any]] = page.session.get("history") or []
     text_elements: List[Any] = []
+
+    # Palette state and UI
+    palette = get_palette(page)
 
     # --- UI Logic ---
     def text_click(e: ft.ControlEvent) -> None:
@@ -88,6 +92,7 @@ def main(page: ft.Page) -> None:
                 field.update_color(get_complementary_color(field.value) if normalize(field.value) != 'INVALID' else random.choice(palette_list))
             random_fab.update_color(random.choice(palette_list))
             complementary_color_text.update_color(random.choice(palette_list))
+            user_palette.update_button_color(random.choice(palette_list))
             build_combination_row(page.bgcolor)
             combination_row_color = random.choice(palette_list)
             for combo in combination_row.controls:
@@ -112,6 +117,7 @@ def main(page: ft.Page) -> None:
                 field.update_color(get_complementary_color(field.value) if normalize(field.value) != 'INVALID' else complementary)
             random_fab.update_color(complementary)
             complementary_color_text.update_color(complementary)
+            user_palette.update_button_color(complementary)
             build_combination_row(color_info)
             # Store only color, not palette
             set_current_state(page, color_info, complementary, None, None)
@@ -127,6 +133,8 @@ def main(page: ft.Page) -> None:
 
     def change_bg(color: Optional[Any] = None, clear_fields: bool = False, palette: Optional[int] = None, palette_colors: Optional[list] = None) -> None:
         """Change the background color and update history and UI as needed."""
+        # --- Preserve user_palette session key ---
+        user_palette_session = page.session.get('user_palette')
         if not color:
             for field in [color1, color2]:
                 norm = normalize(field.value)
@@ -176,11 +184,23 @@ def main(page: ft.Page) -> None:
                 _update_text_colors(new_color)
             add_to_history(page, history, new_color, pair if not color and c1 and c2 else None)
             history_row.update_history(history)
+            # Ensure user_palette buttons update according to new bg
+            user_palette.update_palette()
+            # --- Restore user_palette session key if it was clobbered ---
+            if user_palette_session is not None:
+                page.session.set('user_palette', user_palette_session)
             page.update()
         except Exception as e:
             import traceback
             traceback.print_exc()
             return
+
+    # Palette state and UI (must be after change_bg is defined)
+    user_palette = UserPalette(
+        change_bg=change_bg,
+        comp_color=get_complementary_color(initial_bg),
+        text_click=text_click,
+    )
 
     # --- Hotkeys ---
     page.on_keyboard_event = core.hotkeys.make_hotkey_handler(page, change_bg)
@@ -199,11 +219,10 @@ def main(page: ft.Page) -> None:
     )
 
     # --- UI Components (stateful) ---
-    input_row = InputRow(color1, color2, alignment=ft.alignment.center)
-    input_row_container = ft.Container(
-        content=input_row,
-        alignment=ft.alignment.center,
-        border_radius=ft.BorderRadius(0, 0, 0, 0)
+    # Pass user_palette to InputRow so it appears at the end of the input row
+    input_row = InputRow(
+        color1, color2,
+        user_palette=user_palette
     )
     combination_row_container = CombinationRowContainer()
     combination_row = combination_row_container.combination_row
@@ -235,8 +254,10 @@ def main(page: ft.Page) -> None:
             self.alignment = ft.MainAxisAlignment.SPACE_BETWEEN
             self.controls = [
                 history_row,
-                input_row_container,
-                display_text,
+                input_row,
+                ft.Row([
+                    display_text,
+                ]),
             ]
 
     page.add(ft.SafeArea(content=DisplayArea(), expand=True))
