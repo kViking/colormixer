@@ -47,7 +47,9 @@ notify() {
                 shift 2
                 ;;
             --tags)
+                # Remove leading/trailing whitespace, replace spaces with commas
                 tags="$2 $tags"
+                tags="$(echo $tags | xargs | tr ' ' ',')"
                 shift 2
                 ;;
             *)
