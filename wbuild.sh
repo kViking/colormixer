@@ -11,6 +11,7 @@
 #   ./wbuild.sh 1.2.3 --nobuild # Use 1.2.3 as the version, skip build
 #   ./wbuild.sh --nobump       # Use max version found, do not auto-bump
 #   ./wbuild.sh -h | --help     # Show this help message
+#   ./wbuild.sh --notify "message" [priority] # Send a notification directly
 #
 # This script will:
 #   - Determine the version to use (from argument, --version, or by bumping the latest installer)
@@ -35,6 +36,13 @@ notify() {
     ntfy send dwight-homelab-shout --title="$title" --message="$message" --priority="$priority" 
 }
 
+# Allow direct CLI usage: ./wbuild.sh --notify "message" [priority]
+if [[ "$1" == "--notify" ]]; then
+    shift
+    notify "$1" "${2:-3}"
+    exit 0
+fi
+
 # Parse arguments for --version, --nobuild, --nobump, or a single positional version argument
 for ((i=1; i<=$#; i++)); do
     arg="${!i}"
@@ -48,11 +56,13 @@ for ((i=1; i<=$#; i++)); do
         echo -e "  \033[1;32m./wbuild.sh 1.2.3 --nobuild\033[0m # Use 1.2.3 as the version, skip build"
         echo -e "  \033[1;32m./wbuild.sh --nobump\033[0m       # Use max version found, do not auto-bump"
         echo -e "  \033[1;32m./wbuild.sh -h | --help\033[0m     # Show this help message"
+        echo -e "  \033[1;32m./wbuild.sh --notify \"message\" [priority]\033[0m # Send a notification directly"
         echo -e "\n\033[1;36mOptions:\033[0m"
         echo -e "  \033[1;33m-h, --help\033[0m      Show this help message and exit."
         echo -e "  \033[1;33m--version VER\033[0m   Specify version to use."
         echo -e "  \033[1;33m--nobuild\033[0m       Skip Flet build, only compile installer."
         echo -e "  \033[1;33m--nobump\033[0m        Use max version found, do not auto-bump."
+        echo -e "  \033[1;33m--notify \"message\" [priority]\033[0m Send a notification directly."
         echo -e "\n\033[1;36mThis script will:\033[0m"
         echo -e "  - Determine the version to use (from argument, --version, or by bumping the latest installer)"
         echo -e "  - Build the Flet Windows app (unless --nobuild is given)"
