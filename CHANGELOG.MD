@@ -1,5 +1,21 @@
 # Color Mixer Changelog
 
+## [0.2.4] - 2025-06-03
+### Added
+- **User Palette:** You can now save your favorite colors to a personal palette column. Add any color with the + button, remove with the – button, and instantly recall any palette color with a click.
+- **Click to Copy:** Click the color code label in your palette to copy it to your clipboard instantly.
+
+### Changed
+- The user palette column only appears when you have saved colors, keeping the interface clean when not in use.
+- The input row's left padding now dynamically adjusts (110px with palette, 35px without) for a consistent, balanced layout.
+- All user palette logic is now modularized in `components/user_palette.py` for easier maintenance and extension.
+
+### Fixed
+- No accidental palette clearing: clicking a palette color only changes the background, never deletes your palette.
+- All debug print statements and explanation comments have been removed for production readiness.
+
+---
+
 ## [0.2.3] - 2025-06-02
 ### Added
 - Hotkey navigation for color exploration (arrow keys, shift-modified for fine/coarse steps).
