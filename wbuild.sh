@@ -29,23 +29,48 @@ nobump=0
 pending_version=""
 
 # Function to display colored notifications
+# Usage: notify --message "text" [--priority 3] [--tags ":emoji:"]
 notify() {
-    local title="CMixer"
-    local message=--message="$1"
-    local priority=--priority="$2" # 1-5 low to high
-    # Handle tags if provided
-    local tags=""
-    if [ -n "$3" ]; then
-        tags="--tags $3"
+    local title="CMixer Compiler"
+    local message=""
+    local priority=3
+    local tags="wbuild"
+    # Parse named arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --message)
+                message="$2"
+                shift 2
+                ;;
+            --priority)
+                priority="$2"
+                shift 2
+                ;;
+            --tags)
+                tags="$2 $tags"
+                shift 2
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+    if [ -z "$message" ]; then
+        echo -e "\033[1;31mError: notify function requires --message argument\033[0m"
+        return 1
     fi
-    tags+=" --tags wbuild"
-    ntfy send  --title="$title" $priority $tags dwight-homelab-shout $message
+    ntfy send --title="$title" --priority="$priority" --tags "$tags" dwight-homelab-shout --message="$message"
 }
 
 # Allow direct CLI usage: ./wbuild.sh --notify "message" [priority]
 if [[ "$1" == "--notify" ]]; then
     shift
-    notify "$1" "${2:-3}" ":bell:"
+    # Support both old positional and new named usage for CLI
+    if [[ "$1" == --* ]]; then
+        notify "$@"
+    else
+        notify --message "$1" --priority "${2:-3}" --tags ":bell:"
+    fi
     exit 0
 fi
 
@@ -81,12 +106,10 @@ for ((i=1; i<=$#; i++)); do
     fi
     if [[ "$arg" == "--nobuild" ]]; then
         nobuild=1
-        notify "Skipping Flet build (--nobuild specified)." 2 ":construction:"
         continue
     fi
     if [[ "$arg" == "--nobump" ]]; then
         nobump=1
-        notify "No version bump (--nobump specified)." 2 ":no_entry_sign:"
         continue
     fi
     if [[ "$arg" == "--version" ]]; then
@@ -94,10 +117,9 @@ for ((i=1; i<=$#; i++)); do
         if [[ -n "${@:$((i+1)):1}" ]]; then
             version="${@:$((i+1)):1}"
             ((i++))
-            notify "Using version: $version (from --version)" 3 ":label:"
         else
             echo -e "\033[1;31mError: --version requires a version string\033[0m"
-            notify "Error: --version requires a version string" 5 ":x:"
+            notify --message "Error: --version requires a version string" --priority 5 --tags ":x:"
             exit 1
         fi
         continue
@@ -105,7 +127,6 @@ for ((i=1; i<=$#; i++)); do
     # Accept a positional argument as the version string if no flag is given
     if [[ -z "$pending_version" && ! "$arg" =~ ^- ]]; then
         pending_version="$arg"
-        notify "Using version: $pending_version (positional)" 3 ":label:"
     fi
 done
 
@@ -126,52 +147,47 @@ if [[ -z "$version" ]]; then
             if [[ $nobump -eq 1 ]]; then
                 version="$current_version"
                 echo -e "\033[1;32mUsing max version found: $version (no bump)\033[0m"
-                notify "Using max version found: $version (no bump)" 3 ":repeat:"
             else
                 new_version="$major.$minor.$((patch + 1))"
                 version="$new_version"
                 echo -e "\033[1;32mVersion bumped: $current_version -> $new_version\033[0m"
                 echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
-                notify "Version bumped: $current_version -> $new_version" 3 ":arrow_up:"
             fi
         else
             echo -e "\033[1;31mCould not parse current version from installer filename.\033[0m"
-            notify "Could not parse current version from installer filename." 5 ":x:"
+            notify --message "Could not parse current version from installer filename." --priority 5 --tags ":x:"
             exit 1
         fi
     else
         version="0.1.0"
         echo -e "\033[1;33mNo existing installer found. Defaulting to 0.1.0.\033[0m"
         echo -e "\033[1;32mUsing auto-bumped version: $version\033[0m"
-        notify "No existing installer found. Defaulting to 0.1.0." 2 ":seedling:"
     fi
 else
     echo -e "\033[1;32mUsing provided version: $version\033[0m"
-    notify "Using provided version: $version" 3 ":label:"
 fi
 
 if [[ $nobuild -eq 0 ]]; then
     echo -e "\033[1;34mBuilding Flet Windows app...\033[0m"
-    notify "Building Flet Windows app..." 3 ":hammer:"
+    notify --message "Building Flet Windows app..." --priority 3 --tags ":hammer:"
     flet build windows .;
     if [ $? -ne 0 ]; then
         echo -e "\033[1;31mBuild failed. Please check the output for errors.\033[0m"
-        notify "Flet build failed" 5 ":x:"
+        notify --message "Flet build failed" --priority 5 --tags ":x:"
         exit 1
     fi
     echo -e "\033[1;32mBuild completed successfully.\033[0m"
-    notify "Build completed successfully." 3 ":white_check_mark:"
+    notify --message "Build completed successfully." --priority 3 --tags ":white_check_mark:"
 else
     echo -e "\033[1;33mSkipping Flet build (--nobuild specified).\033[0m"
-    notify "Skipping Flet build (--nobuild specified)." 2 ":construction:"
 fi
 
 echo -e "\033[1;34mCompiling Inno Setup installer...\033[0m"
-notify "Compiling Inno Setup installer..." 3 ":package:"
+notify --message "Compiling Inno Setup installer..." --priority 3 --tags ":package:"
 iscc="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
 if [[ -z "$version" ]]; then
     echo -e "\033[1;31mError: version is empty before calling ISCC. Aborting.\033[0m"
-    notify "Error: version is empty before calling ISCC. Aborting." 5 ":x:"
+    notify --message "Error: version is empty before calling ISCC. Aborting." --priority 5 --tags ":x:"
     exit 1
 fi
 export COLORMIXER_VERSION="$version"
@@ -179,13 +195,13 @@ if [ -f "$iscc" ]; then
     "$iscc" inno-colormixer.iss
     if [ $? -ne 0 ]; then
         echo -e "\033[1;31mInno Setup compilation failed. Please check the output for errors.\033[0m"
-        notify "Inno Setup compilation failed" 5 ":x:"
+        notify --message "Inno Setup compilation failed" --priority 5 --tags ":x:"
         exit 1
     fi
 else
     echo -e "\033[1;31mInno Setup not found at $iscc. Please install it or update the path.\033[0m"
-    notify "Inno Setup not found at $iscc. Please install it or update the path." 5 ":x:"
+    notify --message "Inno Setup not found at $iscc. Please install it or update the path." --priority 5 --tags ":x:"
     exit 1
 fi
 echo -e "\033[1;32mInno Setup installer compiled successfully.\033[0m"
-notify "Inno Setup installer compiled successfully" 3 ":tada:"
+notify --message "Inno Setup installer compiled successfully" --priority 3 --tags ":tada:"
