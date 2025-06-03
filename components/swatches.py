@@ -1,6 +1,7 @@
 import flet as ft
 from typing import Callable, List, Dict, Any, Optional
 from core.color_utils import get_complementary_color, CloseSwatch
+from components.history import HistoryItem
 
 class CombinationRow(ft.Row):
     """Display color combination swatches and handle combination selection."""
@@ -34,7 +35,6 @@ class CombinationRow(ft.Row):
             raise ValueError("No valid background color in UI or session state.")
         combinations = match.get('combinations') or []
         for combo in combinations:
-            # Only set the default style, do not attempt to highlight or select here
             style = ft.TextStyle(
                 color=get_complementary_color(bgcolor),
                 bgcolor=None,
@@ -136,7 +136,6 @@ class ColorSwatch(ft.Container):
             ],
         )
     def _handle_click(self, e: ft.ControlEvent) -> None:
-        # Pass the combination number and palette colors
         self.change_bg({"hex": self.color, "palette": self.combination, "palette_colors": self.palette})
 
 class CombinationRowContainer(ft.Container):
@@ -147,3 +146,4 @@ class CombinationRowContainer(ft.Container):
             content=self.combination_row,
             **kwargs,
         )
+

@@ -2,3 +2,4 @@ build/
 storage/
 __pycache__/
 components/__pycache__/
+.pytest_cache/
