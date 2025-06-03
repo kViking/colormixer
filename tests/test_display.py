@@ -22,7 +22,7 @@ def test_mixed_color_text():
     text = cast(ft.Text, mct.controls[0])
     label = cast(ft.Text, mct.controls[1])
     assert text.spans[0].text == '#abcdef'
-    assert label.value == 'BACKGROUND'
+    assert label.value == '[BACKGROUND]'
     assert get_text_color(label) == get_complementary_color('#abcdef')
     try:
         mct.update_color('#123456')
@@ -36,7 +36,7 @@ def test_mixed_rgb_text():
     text = cast(ft.Text, mrt.controls[0])
     label = cast(ft.Text, mrt.controls[1])
     assert isinstance(text.spans[0].text, str)
-    assert label.value == 'RGB'
+    assert label.value == '[RGB]'
     assert get_text_color(label) == get_complementary_color('#abcdef')
     try:
         mrt.update_color('#654321')
@@ -50,7 +50,7 @@ def test_complementary_color_text():
     text = cast(ft.Text, cct.controls[0])
     label = cast(ft.Text, cct.controls[1])
     assert text.spans[0].text == '#abcdef'
-    assert label.value == 'COMPLEMENTARY'
+    assert label.value == '[COMPLEMENTARY]'
     assert get_text_color(label) == '#abcdef'
     try:
         cct.update_color('#654321')

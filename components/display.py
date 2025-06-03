@@ -23,7 +23,7 @@ class MixedColorText(ft.Row):
                         theme_style=ft.TextThemeStyle.BODY_SMALL,
                         value="[BACKGROUND]",
                         visible=False,
-                        color=get_complementary_color(initial_bg),
+                        style=ft.TextStyle(color=get_complementary_color(initial_bg)),
                     )
                 ]
         )
@@ -31,7 +31,7 @@ class MixedColorText(ft.Row):
         text = cast(ft.Text, self.controls[0])
         text.spans[0].style = ft.TextStyle(color=color)
         label = cast(ft.Text, self.controls[1])
-        label.color = color
+        label.style = ft.TextStyle(color=color)
 
     def update_text(self, new_text: str) -> None:
         text = cast(ft.Text, self.controls[0])
@@ -70,7 +70,7 @@ class ComplementaryColorText(ft.Row):
                     theme_style=ft.TextThemeStyle.BODY_SMALL,
                     value="[COMPLEMENTARY]",
                     visible=False,
-                    color=complementary_color,
+                    style=ft.TextStyle(color=complementary_color),
                 )
             ]
         )
@@ -78,7 +78,7 @@ class ComplementaryColorText(ft.Row):
         text = cast(ft.Text, self.controls[0])
         text.spans[0].style = ft.TextStyle(color=new_color)
         label = cast(ft.Text, self.controls[1])
-        label.color = new_color
+        label.style = ft.TextStyle(color=new_color)
 
     def update_text(self, new_text: str) -> None:
         text = cast(ft.Text, self.controls[0])
@@ -109,7 +109,7 @@ class MixedRGBText(ft.Row):
                     theme_style=ft.TextThemeStyle.BODY_SMALL,
                     value="[RGB]",
                     visible=False,
-                    color=comp_color,
+                    style=ft.TextStyle(color=comp_color),
                 )
             ]
         )
@@ -117,7 +117,7 @@ class MixedRGBText(ft.Row):
         text = cast(ft.Text, self.controls[0])
         text.spans[0].style = ft.TextStyle(color=color)
         label = cast(ft.Text, self.controls[1])
-        label.color = color
+        label.style = ft.TextStyle(color=color)
 
     def update_text(self, new_text: str) -> None:
         text = cast(ft.Text, self.controls[0])

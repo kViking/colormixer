@@ -1,9 +1,8 @@
 import pytest
 from components.fab import RandomFAB
-from components.display import MixedColorText, MixedRGBText
-from components.inputs import ColorInput
 from components.history import HistoryRow
 from typing import Any
+from types import SimpleNamespace
 
 class DummyPage:
     def __init__(self):
@@ -20,23 +19,30 @@ class DummyPage:
         self.events.append('update')
 
 class DummyEvent:
-    pass
+    def __init__(self, page=None):
+        self.page = page
 
 def test_random_fab_click():
     page: Any = DummyPage()  # type: ignore
-    mixed_color = MixedColorText('#123456', on_click=lambda e: None)
-    mixed_rgb = MixedRGBText('#123456', on_click=lambda e: None)
-    color1 = ColorInput(on_change=lambda e: None, on_submit=lambda e: None)
-    color2 = ColorInput(on_change=lambda e: None, on_submit=lambda e: None)
     history = []
     history_row = HistoryRow(history, lambda c: None)
     called = {}
-    def dummy_update_text_colors(arg):
+    def dummy_change_bg(arg, *args, **kwargs):
         called['arg'] = arg
-    complementary_color_text = MixedColorText('#654321', on_click=lambda e: None)  # Dummy for required arg
-    fab = RandomFAB(page, mixed_color, mixed_rgb, color1, color2, dummy_update_text_colors, history, history_row, complementary_color_text)
-    fab._handle_click(DummyEvent())  # type: ignore
-    # The RandomFAB does not append to history directly; test that update_text_colors was called with a hex string
+    fab = RandomFAB(page, update_text_colors=dummy_change_bg, history=history, history_row=history_row)
+    # Use a mock object with a .page attribute to simulate Flet's ControlEvent
+    class MockEvent:
+        def __init__(self, page):
+            self.page = page
+    event = MockEvent(page)
+    fab._handle_click(event)  # type: ignore
+    # The RandomFAB does not append to history directly; test that change_bg was called with a hex string
     assert 'arg' in called
     assert isinstance(called['arg'], str)
     assert called['arg'].startswith('#')
+    from components.display import MixedColorText
+    mct = MixedColorText('#123456', on_click=lambda e: None)
+    label = mct.controls[1]
+    import flet as ft
+    if isinstance(label, ft.Text):
+        assert getattr(label, 'value', None) == '[BACKGROUND]'

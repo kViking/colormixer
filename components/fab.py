@@ -32,8 +32,7 @@ class RandomFAB(ft.FloatingActionButton):
         import random
         new_color = f"#{random.randint(0, 0xFFFFFF):06x}"
         e.page.bgcolor = new_color
-        if self.page is not None:
-            add_to_history(self.page, self.history, new_color)
-            self.history_row.update_history(self.history)
+        add_to_history(e.page, self.history, new_color)
+        self.history_row.update_history(self.history)
         self.change_bg(new_color)
         e.page.update()
