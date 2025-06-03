@@ -169,7 +169,6 @@ fi
 
 if [[ $nobuild -eq 0 ]]; then
     echo -e "\033[1;34mBuilding Flet Windows app...\033[0m"
-    notify --message "Building Flet Windows app..." --priority 3 --tags ":hammer:"
     flet build windows .;
     if [ $? -ne 0 ]; then
         echo -e "\033[1;31mBuild failed. Please check the output for errors.\033[0m"
@@ -183,7 +182,6 @@ else
 fi
 
 echo -e "\033[1;34mCompiling Inno Setup installer...\033[0m"
-notify --message "Compiling Inno Setup installer..." --priority 3 --tags ":package:"
 iscc="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
 if [[ -z "$version" ]]; then
     echo -e "\033[1;31mError: version is empty before calling ISCC. Aborting.\033[0m"
