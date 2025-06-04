@@ -199,7 +199,11 @@ class UserPaletteButtons(ft.Column):
     def show_remove_button(self):
         if self.remove_button not in self.controls:
             self.controls.append(self.remove_button)
+        if self.add_button in self.controls:
+            self.controls.remove(self.add_button)
 
     def hide_remove_button(self):
         if self.remove_button in self.controls:
             self.controls.remove(self.remove_button)
+        if self.add_button not in self.controls:
+            self.controls.append(self.add_button)
