@@ -21,5 +21,13 @@ def test_input_row():
     c1 = ColorInput(on_change=lambda e: None, on_submit=lambda e: None)
     c2 = ColorInput(on_change=lambda e: None, on_submit=lambda e: None)
     row = InputRow(c1, c2, alignment=None)
-    assert hasattr(row, 'content')
-    assert c1 in getattr(row.content, 'controls', []) or isinstance(row.content, object)
+    # InputRow is a Row, so check controls directly
+    assert hasattr(row, 'controls')
+    # The second control is a Container with a Row containing [c1, c2]
+    found = False
+    for control in row.controls:
+        content = getattr(control, 'content', None)
+        controls = getattr(content, 'controls', None)
+        if controls and c1 in controls and c2 in controls:
+            found = True
+    assert found, 'ColorInput not found in InputRow controls/content'

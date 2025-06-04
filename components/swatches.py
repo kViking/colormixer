@@ -65,22 +65,50 @@ class CombinationRow(ft.Row):
         swatches: List[Dict[str, Any]],
         change_bg: Callable[[Dict[str, str]], None],
         text_click: Callable[[ft.ControlEvent], None],
+        update_user_palette: Optional[Callable[[ft.ControlEvent], None]] = None,  # now expects e
     ) -> ft.BottomSheet:
         combo_row = ft.Row(alignment=ft.MainAxisAlignment.CENTER, spacing=0, expand=True)
+        palette_hexes = [x['hex'] for x in swatches if combination in x['combinations']]
+        
+        def handle_replace_palette(e):
+            e.page.session.set('user_palette', palette_hexes)
+            if update_user_palette:
+                update_user_palette(e)
+            e.page.update()
+        
+        replace_palette_button = ft.Text(
+            spans=[ft.TextSpan(
+                "replace palette",
+                on_click=handle_replace_palette,
+                style=ft.TextStyle(
+                    color=get_complementary_color(match['hex']),
+                )
+            )]
+        )
+        
+        combination_label = ft.Text(
+            f"combination {combination}",
+            style=ft.TextStyle(color=get_complementary_color(match['hex'])),
+        )
+        
         sheet = ft.BottomSheet(
             ft.Column(
                 expand=True,
                 alignment=ft.MainAxisAlignment.CENTER,
                 controls=[
                     combo_row,
-                    ft.Text(
-                        f"combination {combination}",
-                        style=ft.TextStyle(color=get_complementary_color(match['hex'])),
+                    ft.Row(
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                        controls = [
+                            combination_label,
+                            replace_palette_button,
+                        ]
                     ),
                 ],
             ),
             bgcolor=match['hex'],
         )
+
         for swatch in swatches:
             if combination in swatch['combinations']:
                 color = swatch['hex']
@@ -92,8 +120,8 @@ class CombinationRow(ft.Row):
                         name,
                         change_bg=change_bg,
                         palette=palette,
-                        on_click=text_click,
                         combination=combination,
+                        on_click=text_click
                     )
                 )
         return sheet

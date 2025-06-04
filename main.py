@@ -63,17 +63,23 @@ def main(page: ft.Page) -> None:
     def build_combination_row(color: Optional[str] = None) -> None:
         """Update the combination row based on the current or given color."""
         match = find_closest_swatch(color or page.bgcolor, swatches)
+        def update_user_palette_event(e):
+            user_palette.update_palette()
         if match is not None:
             combination_row.update_combination_row(
                 match,
                 page,
-                lambda c, m: combination_row.make_bottom_sheet(c, m, swatches, change_bg, text_click),
+                lambda c, m: combination_row.make_bottom_sheet(
+                    c, m, swatches, change_bg, text_click, update_user_palette=update_user_palette_event
+                ),
             )
         else:
             combination_row.update_combination_row(
                 {'hex': '#000000', 'name': None, 'combinations': []},
                 page,
-                lambda c, m: combination_row.make_bottom_sheet(c, m, swatches, change_bg, text_click),
+                lambda c, m: combination_row.make_bottom_sheet(
+                    c, m, swatches, change_bg, text_click, update_user_palette=update_user_palette_event
+                ),
             )
 
     def _update_text_colors(color_info: Optional[Any] = None, palette: Optional[int] = None, palette_colors: Optional[list] = None) -> None:
@@ -194,6 +200,10 @@ def main(page: ft.Page) -> None:
             import traceback
             traceback.print_exc()
             return
+
+    def update_user_palette():
+        """Convenience function to update the user palette UI immediately."""
+        user_palette.update_palette()
 
     # Palette state and UI (must be after change_bg is defined)
     user_palette = UserPalette(
